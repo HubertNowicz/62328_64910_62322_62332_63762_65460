@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Organizer_przepisów_kulinarnych.Data;
+using Organizer_przepisów_kulinarnych.BLL.DbContexts;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
