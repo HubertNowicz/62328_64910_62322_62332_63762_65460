@@ -1,9 +1,8 @@
-﻿namespace Organizer_przepisów_kulinarnych.BLL.Entities.Enums
+﻿namespace Organizer_przepisów_kulinarnych.DAL.Entities.Enums
 {
     public enum UserRole
     {
         Admin,
         User,
-        Moderator
     }
 }

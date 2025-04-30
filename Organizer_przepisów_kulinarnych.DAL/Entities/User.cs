@@ -1,7 +1,7 @@
-﻿using Organizer_przepisów_kulinarnych.BLL.Entities.Enums;
+﻿using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace Organizer_przepisów_kulinarnych.BLL.Entities
+namespace Organizer_przepisów_kulinarnych.DAL.Entities
 {
     public class User
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Organizer_przepisów_kulinarnych.BLL.Entities;
+using Organizer_przepisów_kulinarnych.DAL.Entities;
 
-namespace Organizer_przepisów_kulinarnych.BLL.DbContexts
+namespace Organizer_przepisów_kulinarnych.DAL.DbContexts
 {
     public class ApplicationDbContext : DbContext
     {

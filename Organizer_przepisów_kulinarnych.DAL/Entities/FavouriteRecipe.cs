@@ -1,4 +1,4 @@
-﻿namespace Organizer_przepisów_kulinarnych.BLL.Entities
+﻿namespace Organizer_przepisów_kulinarnych.DAL.Entities
 {
     public class FavoriteRecipe
     {
