@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Organizer_przepisów_kulinarnych.BLL.DbContexts;
+using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 
 #nullable disable
 
 namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250428184036_UpdateUserEntity")]
-    partial class UpdateUserEntity
+    [Migration("20250430094729_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.Category", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -44,7 +44,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.FavoriteRecipe", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.FavoriteRecipe", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -59,7 +59,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("FavoriteRecipes");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.Recipe", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -112,7 +112,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("Recipes");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.User", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -158,15 +158,15 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.FavoriteRecipe", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.FavoriteRecipe", b =>
                 {
-                    b.HasOne("Organizer_przepisów_kulinarnych.BLL.Entities.Recipe", "Recipe")
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", "Recipe")
                         .WithMany("FavoriteRecipes")
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Organizer_przepisów_kulinarnych.BLL.Entities.User", "User")
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.User", "User")
                         .WithMany("FavoriteRecipes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -177,15 +177,15 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.Recipe", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", b =>
                 {
-                    b.HasOne("Organizer_przepisów_kulinarnych.BLL.Entities.Category", "Category")
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Category", "Category")
                         .WithMany("Recipes")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Organizer_przepisów_kulinarnych.BLL.Entities.User", "User")
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.User", "User")
                         .WithMany("Recipes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -196,17 +196,17 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.Category", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Category", b =>
                 {
                     b.Navigation("Recipes");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.Recipe", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", b =>
                 {
                     b.Navigation("FavoriteRecipes");
                 });
 
-            modelBuilder.Entity("Organizer_przepisów_kulinarnych.BLL.Entities.User", b =>
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.User", b =>
                 {
                     b.Navigation("FavoriteRecipes");
 

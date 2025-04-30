@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Organizer_przepisów_kulinarnych.BLL.DbContexts;
-using Organizer_przepisów_kulinarnych.BLL.Entities.Enums;
-using Organizer_przepisów_kulinarnych.BLL.Entities;
+using Organizer_przepisów_kulinarnych.DAL.DbContexts;
+using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
+using Organizer_przepisów_kulinarnych.DAL.Entities;
 
 
 namespace Organizer_przepisów_kulinarnych.Controllers
 {
     public class RegistrationController : Controller
     {
-     
-
         private readonly ApplicationDbContext _context;
 
         public RegistrationController(ApplicationDbContext context)
@@ -24,7 +22,7 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(Organizer_przepisów_kulinarnych.BLL.Entities.User model)
+        public async Task<IActionResult> Register(User model)
         {
             if (ModelState.IsValid)
             {
@@ -36,8 +34,6 @@ namespace Organizer_przepisów_kulinarnych.Controllers
                     Email = model.Email,
                     PasswordHash = model.PasswordHash, // Uwaga: na produkcji trzeba haszować!
                     UserRole = UserRole.User
-
-                    //UserRole = UserRole.Admin
                 };
 
                 _context.Users.Add(user);
