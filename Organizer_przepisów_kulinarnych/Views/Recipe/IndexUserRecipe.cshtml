@@ -1,0 +1,47 @@
+﻿@model List<RecipeViewModel>
+
+@{
+    ViewData["Title"] = "Moje przepisy";
+}
+
+<h2>Moje przepisy</h2>
+
+<a class="btn btn-primary" asp-controller="Recipe" asp-action="Create">Dodaj nowy przepis</a>
+
+<hr />
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Nazwa przepisu</th>
+            <th>Opis</th>
+            <th>Składniki</th>
+            <th>Instrukcje</th>
+            <th>Kategoria</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.RecipeName</td>
+                <td>@item.Description</td>
+                <td>@item.Ingredients</td>
+                <td>@item.Instructions</td>
+                <td>@item.Name</td>
+                <td>
+                    <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@item.RecipeId" class="btn btn-sm btn-warning">Edytuj</a>
+                    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                    {
+                        <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@item.RecipeId" method="post" style="display:inline;"
+                              onsubmit="return confirm('Na pewno chcesz usunąć ten przepis?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Usuń</button>
+                        </form>
+                    }
+                    
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

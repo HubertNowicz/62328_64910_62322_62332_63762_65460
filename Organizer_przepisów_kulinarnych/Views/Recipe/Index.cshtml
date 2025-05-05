@@ -1,0 +1,48 @@
+﻿@model IEnumerable<Organizer_przepisów_kulinarnych.Models.RecipeViewModel>
+
+@{
+    ViewData["Title"] = "Lista Przepisów";
+}
+
+<h1>Lista Przepisów</h1>
+
+
+<a class="btn btn-primary" asp-controller="Recipe" asp-action="Create">Dodaj nowy przepis</a>
+
+<hr />
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Autor</th>
+            <th>Nazwa Przepisu</th>
+            <th>Opis</th>
+            <th>Składniki</th>
+            <th>Instrukcja</th>
+            <th>Czas Przygotowania (min)</th>
+            <th>Data Utworzenia</th>
+            <th>Kategoria</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var recipe in Model)
+        {
+            <tr>
+                <td>@recipe.FirstName @recipe.SurName</td>
+                <td>@recipe.RecipeName</td>
+                <td>@recipe.Description</td>
+                <td>@recipe.Ingredients</td>
+                <td>@recipe.Instructions</td>
+                <td>@recipe.Preptime</td>
+                <td>@recipe.CreatedAt.ToString("dd.MM.yyyy")</td>
+                <td>@recipe.Name</td>
+                <td>
+                    <form asp-controller="Favorite" asp-action="Toggle" method="post" style="display:inline;">
+                        <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
+                        <input type="checkbox" name="isFavourite"
+                               onchange="this.form.submit()" @(recipe.FavoriteRecipe ? "checked" : "") />
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

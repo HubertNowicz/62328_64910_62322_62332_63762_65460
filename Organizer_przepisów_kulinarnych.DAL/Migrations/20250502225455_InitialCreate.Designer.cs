@@ -12,7 +12,7 @@ using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250430094729_InitialCreate")]
+    [Migration("20250502225455_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

@@ -1,0 +1,56 @@
+﻿@model Organizer_przepisów_kulinarnych.Models.RecipeViewModel
+
+@{
+    ViewData["Title"] = "Dodaj Przepis";
+    var users = ViewBag.Users as List<dynamic>;
+    var categories = ViewBag.Categories as List<dynamic>;
+}
+
+<h1>Dodaj Przepis</h1>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="RecipeName">Nazwa Dania</label>
+        <input asp-for="RecipeName" class="form-control" />
+        <span asp-validation-for="RecipeName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Description">Opis</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Ingredients">Składniki</label>
+        <textarea asp-for="Ingredients" class="form-control"></textarea>
+        <span asp-validation-for="Ingredients" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Instructions">Instrukcja przygotowania</label>
+        <textarea asp-for="Instructions" class="form-control"></textarea>
+        <span asp-validation-for="Instructions" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Preptime">Czas przygotowania (min) </label>
+        <input asp-for="Preptime" class="form-control" />
+        <span asp-validation-for="Preptime" class="text-danger"></span>
+    </div>
+  @*   <div class="form-group">
+        <label asp-for="CreatedAt"></label>
+        <input asp-for="CreatedAt" class="form-control" type="date" />
+        <span asp-validation-for="CreatedAt" class="text-danger"></span>
+    </div> *@
+
+    <div class="form-group">
+        <label asp-for="CategoryId">Kategoria</label>
+        <select asp-for="CategoryId" class="form-control" asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))">
+            <option value="">-- wybierz kategorię --</option>
+        </select>
+        <span asp-validation-for="CategoryId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Zapisz</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -24,6 +24,8 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 await DbSeeder.SeedAdminUserAsync(app.Services);
+await DbSeeder.SeedCategoriesAsync(app.Services);
+
 
 if (!app.Environment.IsDevelopment())
 {

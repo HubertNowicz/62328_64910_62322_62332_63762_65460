@@ -38,7 +38,8 @@ public class AccountController : Controller
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.UserRole.ToString())
+            new Claim(ClaimTypes.Role, user.UserRole.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
