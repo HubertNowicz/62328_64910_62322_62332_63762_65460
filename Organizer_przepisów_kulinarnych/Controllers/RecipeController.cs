@@ -8,6 +8,7 @@ using Organizer_przepisów_kulinarnych.Models;
 
 namespace Organizer_przepisów_kulinarnych.Controllers
 {
+    [Authorize]
     public class RecipeController : Controller
     {
         private readonly IUserService _userService;
@@ -21,6 +22,7 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             _favortieRecipeService = favortieRecipeService;
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var recipes = await _recipeService.GetAllRecipesAsync();
@@ -56,7 +58,6 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             return View(recipeViewModels);
         }
 
-        [Authorize]
         public async Task<IActionResult> MyRecipes()
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
@@ -84,7 +85,7 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             return View(recipeViewModels);
         }
 
-        [Authorize]
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
             var categories = await _recipeService.GetAllCategoriesAsync();
@@ -101,7 +102,6 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(RecipeCreateViewModel model)
         {
@@ -125,9 +125,9 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             await _recipeService.CreateRecipeAsync(recipe, userId);
             return RedirectToAction(nameof(MyRecipes));
         }
-        [Authorize]
-        [ValidateAntiForgeryToken]
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleFavorite(int recipeId)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
@@ -135,21 +135,12 @@ namespace Organizer_przepisów_kulinarnych.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-        [Authorize]
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var recipe = await _recipeService.GetRecipeByIdAsync(id);
-            if (recipe == null)
-            {
-                return NotFound();
-            }
-
-            var userId = await _userService.GetCurrentUserIdAsync(User);
-            if (recipe.UserId != userId)
-            {
-                return Forbid();
-            }
-
             await _recipeService.DeleteRecipeAsync(recipe);
             return RedirectToAction(nameof(MyRecipes));
         }

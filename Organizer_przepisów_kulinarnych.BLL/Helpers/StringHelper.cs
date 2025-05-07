@@ -18,7 +18,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Helpers
 
             var tokenSetScore = FuzzySharp.Fuzz.Ratio(str1, str2);
 
-            return tokenSetScore >= 70;
+            return tokenSetScore >= 75;
         }
     }
 }

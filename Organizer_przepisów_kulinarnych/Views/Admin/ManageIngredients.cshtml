@@ -2,23 +2,7 @@
 @{
     ViewData["Title"] = "Manage Ingredients";
 }
-
-@if (TempData["SuccessMessage"] is string successMessage)
-{
-    <div class="alert alert-success">@successMessage</div>
-}
-@if (TempData["ErrorMessage"] is string errorMessage)
-{
-    <div class="alert alert-danger">@errorMessage</div>
-}
-@if (!ViewData.ModelState.IsValid)
-{
-    foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-    {
-        <div class="alert alert-danger">@error.ErrorMessage</div>
-    }
-}
-
+<div id="message-container"></div>
 <div class="container mb-4">
     <a href="@Url.Action("Index", "Admin")" class="btn btn-secondary">
         ← Back to Admin Panel
@@ -30,16 +14,14 @@
         <h5 class="mb-0">Add New Ingredient</h5>
     </div>
     <div class="card-body">
-        <form method="post" asp-action="AddIngredient">
-            <div class="form-group mb-3">
-                <label for="ingredientName">Ingredient Name</label>
-                <input type="text" class="form-control rounded shadow-sm" id="ingredientName" name="ingredientName" required />
-            </div>
-            <button type="submit" class="btn btn-success">Add Ingredient</button>
-        </form>
+        <div class="form-group mb-3">
+            <label for="ingredientName">Ingredient Name</label>
+            <input type="text" class="form-control rounded shadow-sm" id="ingredientName" name="ingredientName" required />
+        </div>
+
+        <button type="button" class="btn btn-success" onclick="addIngredient()">Add Ingredient</button>
     </div>
 </div>
-
 <div class="row">
     <div class="col-md-6">
         <div class="card shadow-sm mb-4">
@@ -62,13 +44,10 @@
                         <tbody>
                             @foreach (var ingredient in Model.Ingredients)
                             {
-                                <tr>
+                                <tr id="ingredient-row-@ingredient.Id">
                                     <td>@ingredient.Name</td>
                                     <td>
-                                        <form asp-action="DeleteIngredient" method="post" class="d-inline">
-                                            <input type="hidden" name="id" value="@ingredient.Id" />
-                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteIngredient(@ingredient.Id)">Delete</button>
                                     </td>
                                 </tr>
                             }
@@ -107,16 +86,10 @@
                                     <td>@suggestion.SuggestedAt.ToString("g")</td>
                                     <td>@suggestion.SuggestedBy</td>
                                     <td>
-                                        <form asp-action="ApproveSuggestion" method="post" class="d-inline">
-                                            <input type="hidden" name="id" value="@suggestion.Id" />
-                                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                        </form>
+                                        <button type="button" class="btn btn-success btn-sm" onclick="approveSuggestion(@suggestion.Id)">Approve</button>
                                     </td>
                                     <td>
-                                        <form asp-action="RejectSuggestion" method="post" class="d-inline">
-                                            <input type="hidden" name="id" value="@suggestion.Id" />
-                                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="rejectSuggestion(@suggestion.Id)">Reject</button>
                                     </td>
                                 </tr>
                             }
@@ -130,6 +103,87 @@
 
 @section Scripts {
     <script>
+
+        function showMessage(type, text) {
+            const container = document.getElementById("message-container");
+            container.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+            setTimeout(() => {
+                container.innerHTML = "";
+            }, 5000);
+        }
+
+        function deleteIngredient(id) {
+            fetch('/Admin/DeleteIngredient', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${id}`
+            })
+                .then(async response => {
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById(`ingredient-row-${id}`).remove();
+                        showMessage("success", data.message);
+                    } else {
+                        showMessage("danger", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage("danger", "An unexpected error occurred.");
+                });
+        }
+
+        function approveSuggestion(id) {
+            fetch('/Admin/ApproveSuggestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${id}`
+            })
+                .then(async response => {
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById(`pending-row-${id}`).remove();
+                        showMessage("success", data.message);
+                    } else {
+                        showMessage("danger", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage("danger", "An unexpected error occurred.");
+                });
+        }
+
+        function rejectSuggestion(id) {
+            fetch('/Admin/RejectSuggestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${id}`
+            })
+                .then(async response => {
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById(`pending-row-${id}`).remove();
+                        showMessage("success", data.message);
+                    } else {
+                        showMessage("danger", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage("danger", "An unexpected error occurred.");
+                });
+        }
+
         function filterTable(inputId, tableId) {
             const filter = document.getElementById(inputId).value.toLowerCase();
             const rows = document.querySelectorAll(`#${tableId} tbody tr`);
@@ -143,5 +197,48 @@
             document.getElementById(inputId).value = "";
             filterTable(inputId, tableId);
         }
+
+        function addIngredient() {
+            const name = document.getElementById("ingredientName").value.trim();
+
+            if (!name) {
+                showMessage("danger", "Please enter an ingredient name.");
+                return;
+            }
+
+            fetch('/Admin/AddIngredient', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `ingredientName=${encodeURIComponent(name)}`
+            })
+                .then(async response => {
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showMessage("success", data.message);
+                        document.getElementById("ingredientName").value = "";
+
+                        location.reload();
+                    } else {
+                        showMessage("danger", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage("danger", "An unexpected error occurred.");
+                });
+        }
+
     </script>
 }
+
+<!--
+Note: CSRF (Cross-Site Request Forgery) protection has been temporarily removed for simplicity.
+1. Including the AntiForgeryToken in the form and request headers.
+2. Validating the token on the server side for each request that modifies data.
+To implement CSRF protection:
+- Use @Html.AntiForgeryToken() in forms.
+- Validate it using the [ValidateAntiForgeryToken] attribute on your controller actions.
+-->

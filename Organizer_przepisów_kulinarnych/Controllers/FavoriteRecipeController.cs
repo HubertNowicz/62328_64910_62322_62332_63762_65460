@@ -20,8 +20,8 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             _recipeService = recipeService;
         }
 
-        [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Toggle(int recipeId)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
@@ -29,7 +29,7 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             return RedirectToAction("Index", "FavoriteRecipe");
         }
 
-        [Authorize]
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
