@@ -1,7 +1,7 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Organizer_przepisów_kulinarnych.BLL.Interfaces;
 using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 using Organizer_przepisów_kulinarnych.DAL.Entities;
 using Organizer_przepisów_kulinarnych.Models;
@@ -10,141 +10,156 @@ namespace Organizer_przepisów_kulinarnych.Controllers
 {
     public class RecipeController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ApplicationDbContext _userManager;
-        public RecipeController(ApplicationDbContext context, ApplicationDbContext userManager)
+        private readonly IUserService _userService;
+        private readonly IRecipeService _recipeService;
+        private readonly IFavortieRecipeService _favortieRecipeService;
+
+        public RecipeController(ApplicationDbContext context, IUserService userService, IRecipeService recipeService, IFavortieRecipeService favortieRecipeService)
         {
-            _context = context;
-            
-            _userManager = userManager;
+            _userService = userService;
+            _recipeService = recipeService;
+            _favortieRecipeService = favortieRecipeService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var recipes = await _context.Recipes.ToListAsync();
-            var users = await _context.Users.ToListAsync(); // tabela z userami (musi zawierać FirstName, SurName)
-            var categories = await _context.Categories.ToListAsync();
+            var recipes = await _recipeService.GetAllRecipesAsync();
 
-      
-            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdString, out var userIdRecipe))
+            List<int> favoriteRecipeIds = [];
+
+            if (User.Identity?.IsAuthenticated == true)
             {
-                return Unauthorized(); // brak ID => nie zalogowany albo claim nie dodany
-            }
-            else
-            {
-                var favouriteIds = await _context.FavoriteRecipes
-                      .Where(f => f.UserId == userIdRecipe)
-                      .Select(f => f.RecipeId)
-                      .ToListAsync();
-                var viewModels = recipes.Select(r =>
-                {
-                    var user = users.FirstOrDefault(u => u.Id == r.UserId);
-                    var category = categories.FirstOrDefault(c => c.Id == r.CategoryId);
-
-                    return new RecipeViewModel
-                    {
-                        FirstName = user.FirstName ?? "Brak",
-                        SurName = user.Surname ?? "Brak",
-                        RecipeName = r.RecipeName,
-                        Description = r.Description,
-                        Ingredients = r.Ingredients,
-                        Instructions = r.Instructions,
-                        Preptime = r.Preptime,
-                        CreatedAt = r.CreatedAt,
-                        UserId = r.UserId,
-                        CategoryId = r.CategoryId,
-                        Name = category?.Name ?? "Brak",
-                        RecipeId = r.Id,
-                        FavoriteRecipe = favouriteIds.Contains(r.Id)
-
-
-
-                    };
-                }).ToList();
-                return View(viewModels);
-            }
-                
-
-            
-        }
-        public async Task<IActionResult> Create()
-        {
-            ViewBag.Users = await _context.Users.ToListAsync();
-            ViewBag.Categories = await _context.Categories.ToListAsync();
-            return View();
-        }
-
-        // POST: Recipes/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AddRecipeViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (!int.TryParse(userIdString, out var userId))
-                {
-                    return Unauthorized(); // brak ID => nie zalogowany albo claim nie dodany
-                }
-                var recipe = new Recipe
-                {
-                    RecipeName = model.RecipeName,
-                    Description = model.Description,
-                    Ingredients = model.Ingredients,
-                    Instructions = model.Instructions,
-                    Preptime = model.Preptime,
-                    CreatedAt = DateTime.Now,
-                    UserId =  userId,
-                    CategoryId = model.CategoryId
-                };
-
-                _context.Recipes.Add(recipe);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var userId = await _userService.GetCurrentUserIdAsync(User);
+                favoriteRecipeIds = await _favortieRecipeService.GetFavoriteRecipesIdsForUserAsync(userId);
             }
 
-            ViewBag.Users = await _context.Users.ToListAsync();
-            ViewBag.Categories = await _context.Categories.ToListAsync();
-            return View(model);
-        }
-
-        public async Task<IActionResult> IndexUserRecipe()
-        {
-            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdString, out var userId))
+            var recipeViewModels = recipes.Select(r => new RecipeViewModel
             {
-                return Unauthorized(); // brak ID => nie zalogowany albo claim nie dodany
-            }
-            var recipes = await _context.Recipes
-                .Where(r => r.UserId == userId)
-                .ToListAsync();
-
-            var users = await _context.Users.ToListAsync();
-            var categories = await _context.Categories.ToListAsync();
-
-            var viewModel = recipes.Select(r =>
-            {
-                var user = users.FirstOrDefault(u => u.Id == r.UserId);
-                var category2 = categories.FirstOrDefault(c => c.Id == r.CategoryId);
-
-                return new RecipeViewModel
+                RecipeId = r.Id,
+                RecipeName = r.RecipeName,
+                Description = r.Description,
+                Ingredients = r.RecipeIngredients.Select(ri => new IngredientViewModel
                 {
-                    RecipeId = r.Id,
-                    RecipeName = r.RecipeName,
-                    Description = r.Description,
-                    Ingredients = r.Ingredients,
-                    Instructions = r.Instructions,
-                    Preptime = r.Preptime,
-                    CreatedAt = r.CreatedAt,
-                    UserId = r.UserId,
-                    CategoryId = r.CategoryId,
-                    Name = category2?.Name ?? "Brak"
-                };
+                    Name = ri.Name,
+                    Amount = ri.Amount,
+                    Unit = ri.Unit
+                }).ToList(),
+                Instructions = r.Instructions,
+                Preptime = r.Preptime,
+                FirstName = r.User.FirstName,
+                Surname = r.User.Surname,
+                CreatedAt = r.CreatedAt,
+                CategoryName = r.Category.Name,
+                IsFavorite = favoriteRecipeIds.Contains(r.Id)
             }).ToList();
 
+            return View(recipeViewModels);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> MyRecipes()
+        {
+            var userId = await _userService.GetCurrentUserIdAsync(User);
+            var recipes = await _recipeService.GetUserRecipesAsync(userId);
+
+            var recipeViewModels = recipes.Select(r => new RecipeViewModel
+            {
+                RecipeId = r.Id,
+                RecipeName = r.RecipeName,
+                Description = r.Description,
+                Ingredients = r.RecipeIngredients.Select(ri => new IngredientViewModel
+                {
+                    Name = ri.Name,
+                    Amount = ri.Amount,
+                    Unit = ri.Unit
+                }).ToList(),
+                Instructions = r.Instructions,
+                Preptime = r.Preptime,
+                FirstName = r.User.FirstName,
+                Surname = r.User.Surname,
+                CreatedAt = r.CreatedAt,
+                CategoryName = r.Category.Name
+            }).ToList();
+
+            return View(recipeViewModels);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Create()
+        {
+            var categories = await _recipeService.GetAllCategoriesAsync();
+            var viewModel = new RecipeCreateViewModel
+            {
+                Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+            };
+
             return View(viewModel);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(RecipeCreateViewModel model)
+        {
+            var userId = await _userService.GetCurrentUserIdAsync(User);
+
+            var recipe = new Recipe
+            {
+                RecipeName = model.RecipeName,
+                Description = model.Description,
+                Instructions = model.Instructions,
+                Preptime = model.Preptime,
+                CategoryId = model.CategoryId,
+                UserId = userId,
+                RecipeIngredients = model.Ingredients.Select(i => new RecipeIngredient
+                {
+                    Amount = i.Amount,
+                    Unit = i.Unit,
+                    Name = i.Name,
+                }).ToList()
+            };
+            await _recipeService.CreateRecipeAsync(recipe, userId);
+            return RedirectToAction(nameof(MyRecipes));
+        }
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        [HttpPost]
+        public async Task<IActionResult> ToggleFavorite(int recipeId)
+        {
+            var userId = await _userService.GetCurrentUserIdAsync(User);
+            await _favortieRecipeService.ToggleFavoriteAsync(userId, recipeId);
+
+            return RedirectToAction(nameof(Index));
+        }
+        [Authorize]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var recipe = await _recipeService.GetRecipeByIdAsync(id);
+            if (recipe == null)
+            {
+                return NotFound();
+            }
+
+            var userId = await _userService.GetCurrentUserIdAsync(User);
+            if (recipe.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            await _recipeService.DeleteRecipeAsync(recipe);
+            return RedirectToAction(nameof(MyRecipes));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchIngredients(string term)
+        {
+            var matches = await _recipeService.MatchingIngredients(term);
+
+            return Json(matches);
         }
 
     }

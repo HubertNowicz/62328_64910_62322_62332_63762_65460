@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Organizer_przepisów_kulinarnych.Models.RecipeViewModel>
+﻿@model IEnumerable<RecipeViewModel>
 
 @{
     ViewData["Title"] = "Lista Przepisów";
@@ -6,10 +6,8 @@
 
 <h1>Lista Przepisów</h1>
 
+<a class="btn btn-primary mb-3" asp-controller="Recipe" asp-action="Create">Dodaj nowy przepis</a>
 
-<a class="btn btn-primary" asp-controller="Recipe" asp-action="Create">Dodaj nowy przepis</a>
-
-<hr />
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -21,25 +19,47 @@
             <th>Czas Przygotowania (min)</th>
             <th>Data Utworzenia</th>
             <th>Kategoria</th>
+            <th>Ulubiony</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var recipe in Model)
         {
             <tr>
-                <td>@recipe.FirstName @recipe.SurName</td>
+                <td>@recipe.FirstName @recipe.Surname</td>
                 <td>@recipe.RecipeName</td>
                 <td>@recipe.Description</td>
-                <td>@recipe.Ingredients</td>
+                <td>
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Nazwa</th>
+                                <th>Ilość</th>
+                                <th>Jednostka</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ingredient in recipe.Ingredients)
+                            {
+                                <tr>
+                                    <td>@ingredient.Name</td>
+                                    <td>@ingredient.Amount</td>
+                                    <td>@ingredient.Unit</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </td>
                 <td>@recipe.Instructions</td>
                 <td>@recipe.Preptime</td>
                 <td>@recipe.CreatedAt.ToString("dd.MM.yyyy")</td>
-                <td>@recipe.Name</td>
+                <td>@recipe.CategoryName</td>
                 <td>
-                    <form asp-controller="Favorite" asp-action="Toggle" method="post" style="display:inline;">
+                    <form asp-action="ToggleFavorite" method="post">
                         <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
-                        <input type="checkbox" name="isFavourite"
-                               onchange="this.form.submit()" @(recipe.FavoriteRecipe ? "checked" : "") />
+                        <button type="submit">
+                            @(recipe.IsFavorite ? "💖" : "🤍")
+                        </button>
                     </form>
                 </td>
             </tr>

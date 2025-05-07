@@ -90,9 +90,8 @@ public class AccountController : Controller
             UserRole = UserRole.User
         };
 
-        await _userService.CreateAsync(user); // You’ll define this in UserService
+        await _userService.CreateAsync(user);
 
-        // Optional: Auto-login after registration
         var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.Username),

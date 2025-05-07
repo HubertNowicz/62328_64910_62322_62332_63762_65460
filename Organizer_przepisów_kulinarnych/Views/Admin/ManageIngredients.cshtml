@@ -1,0 +1,147 @@
+﻿@model AdminIngredientsViewModel
+@{
+    ViewData["Title"] = "Manage Ingredients";
+}
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+    {
+        <div class="alert alert-danger">@error.ErrorMessage</div>
+    }
+}
+
+<div class="container mb-4">
+    <a href="@Url.Action("Index", "Admin")" class="btn btn-secondary">
+        ← Back to Admin Panel
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Add New Ingredient</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" asp-action="AddIngredient">
+            <div class="form-group mb-3">
+                <label for="ingredientName">Ingredient Name</label>
+                <input type="text" class="form-control rounded shadow-sm" id="ingredientName" name="ingredientName" required />
+            </div>
+            <button type="submit" class="btn btn-success">Add Ingredient</button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Existing Ingredients</h5>
+            </div>
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="searchExisting" placeholder="Search existing ingredients..." onkeyup="filterTable('searchExisting', 'existingTable')" />
+                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('searchExisting', 'existingTable')">Clear</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0" id="existingTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ingredient in Model.Ingredients)
+                            {
+                                <tr>
+                                    <td>@ingredient.Name</td>
+                                    <td>
+                                        <form asp-action="DeleteIngredient" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@ingredient.Id" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Pending Ingredients</h5>
+            </div>
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="searchPending" placeholder="Search pending ingredients..." onkeyup="filterTable('searchPending', 'pendingTable')" />
+                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('searchPending', 'pendingTable')">Clear</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0" id="pendingTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Suggested At</th>
+                                <th>Suggested By</th>
+                                <th colspan="2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var suggestion in Model.PendingIngredients)
+                            {
+                                <tr>
+                                    <td>@suggestion.Name</td>
+                                    <td>@suggestion.SuggestedAt.ToString("g")</td>
+                                    <td>@suggestion.SuggestedBy</td>
+                                    <td>
+                                        <form asp-action="ApproveSuggestion" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@suggestion.Id" />
+                                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <form asp-action="RejectSuggestion" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@suggestion.Id" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable(inputId, tableId) {
+            const filter = document.getElementById(inputId).value.toLowerCase();
+            const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? "" : "none";
+            });
+        }
+
+        function clearSearch(inputId, tableId) {
+            document.getElementById(inputId).value = "";
+            filterTable(inputId, tableId);
+        }
+    </script>
+}

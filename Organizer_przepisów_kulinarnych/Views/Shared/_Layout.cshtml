@@ -28,14 +28,11 @@
                     </ul>
 
                     <ul class="navbar-nav">
-                        @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Admin Panel</a>
-                            </li>
-                        }
                         @if (!User.Identity.IsAuthenticated)
                         {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Recipe" asp-action="Index">Przepisy</a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
                             </li>
@@ -48,14 +45,20 @@
                             <li class="nav-item">
                                 <span class="nav-link text-dark">Hello, @User.Identity.Name!</span>
                             </li>
+                            @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Admin Panel</a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Recipe" asp-action="Index">Przepisy</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Recipe" asp-action="IndexUserRecipe">Moje przepisy</a>
+                                <a class="nav-link text-dark" asp-controller="Recipe" asp-action="MyRecipes">Moje przepisy</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Favorite" asp-action="Index">Ulubione przepisy</a>
+                                <a class="nav-link text-dark" asp-controller="FavoriteRecipe" asp-action="Index">Ulubione przepisy</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Wyloguj</a>

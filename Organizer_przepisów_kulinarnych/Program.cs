@@ -4,13 +4,16 @@ using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
 using Organizer_przepisów_kulinarnych.BLL.Services;
 using Organizer_przepisów_kulinarnych.Helpers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddScoped<IFavortieRecipeService, FavoriteRecipeService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddSession();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
