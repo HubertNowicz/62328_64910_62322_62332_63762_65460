@@ -41,7 +41,6 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveSuggestion(int id)
     {
         await _adminService.ApprovePendingIngredientAsync(id);
@@ -49,7 +48,6 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> RejectSuggestion(int id)
     {
         await _adminService.RejectPendingIngredientAsync(id);
@@ -57,7 +55,6 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteIngredient(int id)
     {
         var result = await _adminService.DeleteIngredientAsync(id);
@@ -69,7 +66,6 @@ public class AdminController : Controller
         return BadRequest(new { message = result.Message });
     }
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddIngredient(string ingredientName)
     {
         var (success, errorMessage) = await _adminService.AddIngredientAsync(ingredientName);
