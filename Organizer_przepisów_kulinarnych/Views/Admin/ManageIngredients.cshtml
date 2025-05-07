@@ -81,7 +81,7 @@
                         <tbody>
                             @foreach (var suggestion in Model.PendingIngredients)
                             {
-                                <tr>
+                                <tr id="pending-row-@suggestion.Id">
                                     <td>@suggestion.Name</td>
                                     <td>@suggestion.SuggestedAt.ToString("g")</td>
                                     <td>@suggestion.SuggestedBy</td>
