@@ -1,11 +1,9 @@
 ﻿using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
-using System.ComponentModel.DataAnnotations;
 
 namespace Organizer_przepisów_kulinarnych.DAL.Entities
 {
     public class User
     {
-        [Key]
         public int Id { get; set; }
         public string Username { get; set; }
         public string FirstName { get; set; }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 
@@ -11,9 +12,11 @@ using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250507061929_addKeyForRecipeIngredient")]
+    partial class addKeyForRecipeIngredient
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,34 +150,26 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.RecipeIngredient", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
 
                     b.Property<double>("Amount")
                         .HasColumnType("float");
-
-                    b.Property<int?>("IngredientId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RecipeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("RecipeId", "IngredientId");
 
                     b.HasIndex("IngredientId");
-
-                    b.HasIndex("RecipeId");
 
                     b.ToTable("RecipeIngredients");
                 });

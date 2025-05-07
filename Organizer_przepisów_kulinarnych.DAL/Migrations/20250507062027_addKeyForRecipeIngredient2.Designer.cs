@@ -12,8 +12,8 @@ using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250502225455_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250507062027_addKeyForRecipeIngredient2")]
+    partial class addKeyForRecipeIngredient2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,9 +35,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Nazwa kategorii jest wymagana.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -59,6 +57,54 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("FavoriteRecipes");
                 });
 
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Ingredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Ingredients");
+                });
+
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.PendingIngredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("SuggestedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("SuggestedByUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SuggestedByUserId");
+
+                    b.ToTable("PendingIngredients");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", b =>
                 {
                     b.Property<int>("Id")
@@ -77,28 +123,18 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Ingredients")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Składniki są wymagane.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Instructions")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("Instrukcje są wymagane.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Preptime")
-                        .HasColumnType("int")
-                        .HasComment("Czas przygotowania jest wymagany");
+                        .HasColumnType("int");
 
                     b.Property<string>("RecipeName")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
-                        .HasComment("Tytuł przepisu jest wymagany.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -112,6 +148,40 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("Recipes");
                 });
 
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.RecipeIngredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("RecipeIngredients");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -122,36 +192,26 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Adres e-mail jest wymagany.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Imię jest wymagane.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Hasło jest wymagane.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Surname")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Nazwisko jest wymagane.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserRole")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Nazwa użytkownika jest wymagana.");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -177,6 +237,17 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.PendingIngredient", b =>
+                {
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.User", "SuggestedByUser")
+                        .WithMany()
+                        .HasForeignKey("SuggestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SuggestedByUser");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", b =>
                 {
                     b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Category", "Category")
@@ -196,14 +267,38 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.RecipeIngredient", b =>
+                {
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Ingredient", "Ingredient")
+                        .WithMany("RecipeIngredients")
+                        .HasForeignKey("IngredientId");
+
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", "Recipe")
+                        .WithMany("RecipeIngredients")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Recipe");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Category", b =>
                 {
                     b.Navigation("Recipes");
                 });
 
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Ingredient", b =>
+                {
+                    b.Navigation("RecipeIngredients");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", b =>
                 {
                     b.Navigation("FavoriteRecipes");
+
+                    b.Navigation("RecipeIngredients");
                 });
 
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.User", b =>

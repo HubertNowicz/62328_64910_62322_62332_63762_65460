@@ -1,0 +1,70 @@
+﻿@model IEnumerable<RecipeViewModel>
+
+@{
+    ViewData["Title"] = "Moje Przepisy";
+}
+
+<h1>Moje Przepisy</h1>
+
+<a class="btn btn-primary mb-3" asp-controller="Recipe" asp-action="Create">Dodaj nowy przepis</a>
+
+@if (!Model.Any())
+{
+    <p>Nie dodałeś jeszcze żadnych przepisów.</p>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Nazwa Przepisu</th>
+                <th>Opis</th>
+                <th>Składniki</th>
+                <th>Instrukcja</th>
+                <th>Czas Przygotowania (min)</th>
+                <th>Data Utworzenia</th>
+                <th>Kategoria</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var recipe in Model)
+            {
+                <tr>
+                    <td>@recipe.RecipeName</td>
+                    <td>@recipe.Description</td>
+                    <td>
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Nazwa</th>
+                                    <th>Ilość</th>
+                                    <th>Jednostka</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ingredient in recipe.Ingredients)
+                                {
+                                    <tr>
+                                        <td>@ingredient.Name</td>
+                                        <td>@ingredient.Amount</td>
+                                        <td>@ingredient.Unit</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@recipe.Instructions</td>
+                    <td>@recipe.Preptime</td>
+                    <td>@recipe.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td>@recipe.CategoryName</td>
+                    <td>
+                        <form asp-action="Delete" asp-route-id="@recipe.RecipeId" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć ten przepis?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Usuń</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

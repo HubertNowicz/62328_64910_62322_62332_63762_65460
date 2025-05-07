@@ -1,0 +1,64 @@
+﻿@model List<FavouriteRecipeViewModel>
+
+<h2>Ulubione przepisy</h2>
+
+@if (Model == null || !Model.Any())
+{
+    <p class="text-muted">Brak ulubionych przepisów.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nazwa przepisu</th>
+                <th>Autor</th>
+                <th>Kategoria</th>
+                <th>Opis</th>
+                <th>Składniki</th>
+                <th>Instrukcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var recipe in Model)
+            {
+                <tr>
+                    <td>@recipe.RecipeName</td>
+                    <td>@recipe.FirstName @recipe.Surname</td>
+                    <td>@recipe.Name</td>
+                    <td>@recipe.Description</td>
+                    <td>
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Nazwa</th>
+                                    <th>Ilość</th>
+                                    <th>Jednostka</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ingredient in recipe.Ingredients)
+                                {
+                                    <tr>
+                                        <td>@ingredient.Name</td>
+                                        <td>@ingredient.Amount</td>
+                                        <td>@ingredient.Unit</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@recipe.Instructions</td>
+                    <td>
+                        <form asp-action="Toggle" method="post">
+                            <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
+                            <button type="submit">
+                                💖
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

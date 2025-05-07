@@ -1,26 +1,28 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
-public class RegisterViewModel
+namespace Organizer_przepisów_kulinarnych.Models
 {
-    [Required]
-    public string Username { get; set; }
+    public class RegisterViewModel
+    {
+        [Required]
+        public string Username { get; set; }
 
-    [Required]
-    public string FirstName { get; set; }
+        [Required]
+        public string FirstName { get; set; }
 
-    [Required]
-    public string Surname { get; set; }
+        [Required]
+        public string Surname { get; set; }
 
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
 
-    [Required]
-    [DataType(DataType.Password)]
-    public string Password { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
 
-    [Required]
-    [DataType(DataType.Password)]
-    [Compare("Password", ErrorMessage = "Passwords do not match")]
-    public string ConfirmPassword { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; }
+    }
 }

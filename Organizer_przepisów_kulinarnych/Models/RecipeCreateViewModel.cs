@@ -1,40 +1,30 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace Organizer_przepisów_kulinarnych.Models
 {
-    public class AddRecipeViewModel
+    public class RecipeCreateViewModel
     {
-       
-
         [Required]
         public string RecipeName { get; set; }
 
         [Required]
         public string Description { get; set; }
 
-
         [Required]
-        public string Ingredients { get; set; }
+        public List<IngredientViewModel> Ingredients { get; set; } = [];
 
         [Required]
         public string Instructions { get; set; }
 
         [Required]
+        [Display(Name = "Preparation Time (minutes)")]
         public int Preptime { get; set; }
 
         [Required]
-        public DateTime CreatedAt { get; set; }
-
-        [Required]
-        public int UserId { get; set; }
-
-        [Required]
+        [Display(Name = "Category")]
         public int CategoryId { get; set; }
 
-     
-
-
-
+        public IEnumerable<SelectListItem> Categories { get; set; }
     }
 }
