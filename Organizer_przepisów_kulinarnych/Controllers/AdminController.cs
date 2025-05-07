@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
-using Organizer_przepisów_kulinarnych.DAL.Entities;
 using Organizer_przepisów_kulinarnych.Models;
 
 [Authorize(Roles = "Admin")]
@@ -46,7 +45,7 @@ public class AdminController : Controller
     public async Task<IActionResult> ApproveSuggestion(int id)
     {
         await _adminService.ApprovePendingIngredientAsync(id);
-        return RedirectToAction(nameof(ManageIngredients));
+        return Ok(new { message = "Approved successfully." });
     }
 
     [HttpPost]
@@ -54,38 +53,32 @@ public class AdminController : Controller
     public async Task<IActionResult> RejectSuggestion(int id)
     {
         await _adminService.RejectPendingIngredientAsync(id);
-        return RedirectToAction(nameof(ManageIngredients));
+        return Ok(new { message = "Ingredient rejected." });
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteIngredient(int id)
     {
         var result = await _adminService.DeleteIngredientAsync(id);
 
         if (result.Success)
         {
-            TempData["SuccessMessage"] = result.Message;
-            return RedirectToAction(nameof(ManageIngredients));
+            return Ok(new { message = result.Message });
         }
-        else
-        {
-            TempData["ErrorMessage"] = result.Message;
-            return RedirectToAction(nameof(ManageIngredients));
-        }
+        return BadRequest(new { message = result.Message });
     }
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddIngredient(string ingredientName)
     {
         var (success, errorMessage) = await _adminService.AddIngredientAsync(ingredientName);
 
-        if (!success)
+        if (success)
         {
-            ModelState.AddModelError(string.Empty, errorMessage);
-            return View();
+            return Ok(new { message = "Ingredient added successfully." });
         }
-
-        TempData["SuccessMessage"] = "Składnik został dodany pomyślnie.";
-        return RedirectToAction(nameof(ManageIngredients));
+        return BadRequest(new { message = errorMessage ?? "Failed to add ingredient." });
     }
 }
 
