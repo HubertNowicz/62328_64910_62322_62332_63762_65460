@@ -25,8 +25,10 @@ public class AdminController : Controller
     {
         var ingredients = await _recipeService.GetAllIngredientsAsync();
         var pendingIngredients = await _adminService.GetAllPendingIngredientsAsync();
+        var units = await _recipeService.GetAllUnitsAsync();
         var model = new AdminIngredientsViewModel
         {
+            AllUnits = units.ToList(),
             Ingredients = ingredients.ToList(),
             PendingIngredients = pendingIngredients.Select(x => new PendingIngredientViewModel
             {
@@ -65,16 +67,19 @@ public class AdminController : Controller
         }
         return BadRequest(new { message = result.Message });
     }
+
     [HttpPost]
-    public async Task<IActionResult> AddIngredient(string ingredientName)
+    public async Task<IActionResult> AddIngredient(string ingredientName, List<int> unitIds)
     {
-        var (success, errorMessage) = await _adminService.AddIngredientAsync(ingredientName);
+        var (success, errorMessage) = await _adminService.AddIngredientAsync(ingredientName, unitIds);
 
         if (success)
         {
-            return Ok(new { message = "Ingredient added successfully." });
+            return Ok(new { message = "Ingredient processed successfully." });
         }
+
         return BadRequest(new { message = errorMessage ?? "Failed to add ingredient." });
     }
+
 }
 

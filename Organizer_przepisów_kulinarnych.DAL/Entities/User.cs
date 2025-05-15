@@ -11,6 +11,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Entities
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public UserRole UserRole { get; set; }
+
         public ICollection<Recipe> Recipes { get; set; } = [];
         public ICollection<FavoriteRecipe> FavoriteRecipes { get; set; } = [];
     }

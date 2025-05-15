@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace Organizer_przepisów_kulinarnych.Models
 {
@@ -19,10 +20,10 @@ namespace Organizer_przepisów_kulinarnych.Models
         public string Description { get; set; }
 
         [Required]
-        public string Instructions { get; set; }
+        public List<RecipeInstructionStepViewModel> InstructionSteps { get; set; } = [];
 
         [Required]
-        public List<IngredientViewModel> Ingredients { get; set; } = [];
+        public List<RecipeIngredientViewModel> Ingredients { get; set; } = [];
 
         [Required]
         public int Preptime { get; set; }
@@ -34,6 +35,8 @@ namespace Organizer_przepisów_kulinarnych.Models
         public string CategoryName { get; set; }
 
         public bool IsFavorite { get; set;}
+        public bool IsUserRecipe { get; set; }
+        public List<SelectListItem> Units { get; set; }
 
     }
 }

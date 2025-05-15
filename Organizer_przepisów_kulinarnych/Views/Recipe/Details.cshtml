@@ -1,0 +1,60 @@
+﻿@model RecipeViewModel
+
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="d-flex justify-content-between">
+            @Model.RecipeName
+            <div class="d-flex align-items-center">
+                <span class="ms-1">Dodaj do ulubionych</span>
+                @await Html.PartialAsync("_FavoriteToggle", Model)
+            </div>
+        </h2>
+
+        <p><strong>Autor:</strong> @Model.FirstName @Model.Surname</p>
+        <p><strong>Data utworzenia:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy")</p>
+        <p><strong>Opis:</strong> @Model.Description</p>
+        <p><strong>Kategoria:</strong> @Model.CategoryName</p>
+        <p><strong>Czas przygotowania:</strong> @Model.Preptime min</p>
+
+        <h3>Składniki:</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nazwa</th>
+                    <th>Ilość</th>
+                    <th>Jednostka</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ingredient in Model.Ingredients)
+                {
+                    <tr>
+                        <td>@ingredient.Name</td>
+                        <td>@ingredient.Amount</td>
+                        <td>@ingredient.Unit.Abbreviation</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <h3>Instrukcja:</h3>
+        <ol>
+            @foreach (var step in Model.InstructionSteps.OrderBy(s => s.StepNumber))
+            {
+                <li>@step.Description</li>
+            }
+        </ol>
+
+        @if (Model.IsUserRecipe)
+        {
+            <form asp-action="Delete" asp-route-id="@Model.RecipeId" method="post"
+                  onsubmit="return confirm('Czy na pewno chcesz usunąć ten przepis?');" style="display:inline;">
+                <button type="submit" class="btn btn-danger mt-2">Usuń</button>
+            </form>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6d/Good_Food_Display_-_NCI_Visuals_Online.jpg" class="img-fluid mb-3" alt="@Model.RecipeName" style="max-width: 100%; height: auto;" />
+    </div>
+</div>

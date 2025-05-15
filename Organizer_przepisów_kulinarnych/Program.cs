@@ -14,6 +14,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IFavortieRecipeService, FavoriteRecipeService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddSession();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -28,6 +29,9 @@ var app = builder.Build();
 
 await DbSeeder.SeedAdminUserAsync(app.Services);
 await DbSeeder.SeedCategoriesAsync(app.Services);
+await DbSeeder.SeedMeasurementUnitsAsync(app.Services);
+await DbSeeder.SeedIngredientsAsync(app.Services);
+await DbSeeder.SeedRecipesAsync(app.Services);
 
 
 if (!app.Environment.IsDevelopment())

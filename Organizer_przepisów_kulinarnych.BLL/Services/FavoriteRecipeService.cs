@@ -5,7 +5,7 @@ using Organizer_przepisów_kulinarnych.DAL.Entities;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Services
 {
-    public class FavoriteRecipeService: IFavortieRecipeService
+    public class FavoriteRecipeService : IFavortieRecipeService
     {
         private readonly ApplicationDbContext _context;
         public FavoriteRecipeService(ApplicationDbContext context)
@@ -41,14 +41,17 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
         }
         public async Task<List<Recipe>> GetFavoriteRecipesForUserAsync(int userId)
         {
-            return await _context.FavoriteRecipes
-                .Where(fr => fr.UserId == userId)
-                .Include(fr => fr.Recipe)
-                    .ThenInclude(r => r.User)
-                .Include(fr => fr.Recipe)
-                    .ThenInclude(r => r.Category)
-                .Select(fr => fr.Recipe)
+            return await _context.Recipes
+                .Where(r => r.FavoriteRecipes.Any(fr => fr.UserId == userId))
+                .Include(r => r.User)
+                .Include(r => r.Category)
+                .Include(r => r.InstructionSteps)
+                .Include(r => r.RecipeIngredients)
+                    .ThenInclude(ri => ri.Unit)
+                .Include(r => r.RecipeIngredients)
+                    .ThenInclude(ri => ri.Ingredient)
                 .ToListAsync();
         }
+
     }
 }
