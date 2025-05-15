@@ -7,5 +7,7 @@
         public DateTime SuggestedAt { get; set; } = DateTime.UtcNow;
         public int SuggestedByUserId { get; set; }
         public User SuggestedByUser { get; set; }
+        public int MeasurementUnitId { get; set; }
+        public MeasurementUnit MeasurementUnit { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Dodaj Przepis";
+    var unitsJson = System.Text.Json.JsonSerializer.Serialize(Model.Units);
 }
 
 <!-- Tom Select CSS -->
@@ -24,21 +25,21 @@
 
     <div class="form-group mb-3">
         <label>Ingredients</label>
-        <div id="ingredient-list" class="mb-2">
-        </div>
-        <button type="button" class="btn btn-primary" id="add-ingredient">Add Ingredient</button>
+        <div id="ingredient-list" class="mb-2"></div>
+        <button type="button" class="btn btn-primary" id="add-ingredient">Dodaj składnik</button>
         <span asp-validation-for="Ingredients" class="text-danger"></span>
     </div>
 
     <div class="form-group mb-3">
-        <label asp-for="Instructions"></label>
-        <textarea asp-for="Instructions" class="form-control rounded shadow-sm"></textarea>
-        <span asp-validation-for="Instructions" class="text-danger"></span>
+        <label>Instruction Steps</label>
+        <div id="instruction-list" class="mb-2"></div>
+        <button type="button" class="btn btn-secondary" id="add-instruction">Dodaj krok</button>
+        <span asp-validation-for="InstructionSteps" class="text-danger"></span>
     </div>
 
     <div class="form-group mb-3">
         <label asp-for="Preptime"></label>
-        <input asp-for="Preptime" class="form-control rounded shadow-sm" type="number" />
+        <input asp-for="Preptime" class="form-control rounded shadow-sm" type="number" inputmode="numeric" pattern="[0-9]*" />
         <span asp-validation-for="Preptime" class="text-danger"></span>
     </div>
 
@@ -48,7 +49,7 @@
         <span asp-validation-for="CategoryId" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-success">Create</button>
+    <button type="submit" class="btn btn-success">Stwórz przepis</button>
 </form>
 
 <!-- Tom Select JS -->
@@ -56,28 +57,37 @@
 
 @section Scripts {
     <script>
+        const unitsOptions = @Html.Raw(unitsJson);
+        const unitsOptionsHtml = unitsOptions.map(u => `<option value="${u.Value}">${u.Text}</option>`).join('');
+
         document.addEventListener("DOMContentLoaded", function () {
             const addIngredientButton = document.getElementById("add-ingredient");
             const ingredientList = document.getElementById("ingredient-list");
+            const addInstructionButton = document.getElementById("add-instruction");
+            const instructionList = document.getElementById("instruction-list");
             const form = document.querySelector("form");
 
+            // INGREDIENTS
             addIngredientButton.addEventListener("click", function () {
                 const index = ingredientList.children.length;
                 const ingredientItem = document.createElement("div");
                 ingredientItem.classList.add("ingredient-item", "form-row", "mb-2", "d-flex", "gap-2", "align-items-center");
 
                 ingredientItem.innerHTML = `
-                    <div class="col">
-                        <select name="Ingredients[${index}].Name" class="form-control rounded shadow-sm ingredient-name-select" required></select>
-                    </div>
-                    <div class="col">
-                        <input name="Ingredients[${index}].Amount" class="form-control rounded shadow-sm" type="number" step="0.01" placeholder="Amount" required />
-                    </div>
-                    <div class="col">
-                        <input name="Ingredients[${index}].Unit" class="form-control rounded shadow-sm" placeholder="Unit (e.g. cup, tsp)" required />
-                    </div>
-                    <button type="button" class="btn btn-danger remove-ingredient">Remove</button>
-                `;
+                            <div class="col">
+                                <select name="Ingredients[${index}].Name" class="form-control rounded shadow-sm ingredient-name-select" required></select>
+                            </div>
+                            <div class="col">
+                                <input name="Ingredients[${index}].Amount" class="form-control rounded shadow-sm" type="number" step="1" placeholder="Amount" inputmode="decimal" pattern="[0-9]+([\\.][0-9]{1,2})?" required />
+                            </div>
+                            <div class="col">
+                                <select name="Ingredients[${index}].UnitId" class="form-control rounded shadow-sm unit-select" required>
+                                    <option value="">--Select Unit--</option>
+                                    ${unitsOptionsHtml}
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-danger remove-ingredient">Usuń składnik</button>
+                        `;
 
                 ingredientList.appendChild(ingredientItem);
 
@@ -90,8 +100,82 @@
                 }
             });
 
-            addIngredientButton.click();
+            function initializeTomSelect(selectElement) {
+                new TomSelect(selectElement, {
+                    create: true,
+                    createOnBlur: true,
+                    persist: true,
+                    maxOptions: 10,
+                    valueField: 'value',
+                    labelField: 'value',
+                    searchField: 'value',
+                    load: function (query, callback) {
+                        if (!query.length) return callback();
 
+                        fetch(`/Recipe/SearchIngredients?term=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                callback(data.suggestions.map(name => ({ value: name })));
+                            })
+                            .catch(() => callback());
+                    },
+                    onItemAdd: function (value) {
+                        const unitSelect = selectElement.closest('.ingredient-item').querySelector('.unit-select');
+                        if (!value) return;
+
+                        fetch(`/Recipe/GetUnitsForIngredient?name=${encodeURIComponent(value)}`)
+                            .then(response => response.json())
+                            .then(units => {
+                                unitSelect.innerHTML = '<option value="">--Select Unit--</option>';
+                                units.forEach(u => {
+                                    const option = document.createElement('option');
+                                    option.value = u.id;
+                                    option.textContent = `${u.name} (${u.abbreviation})`;
+                                    unitSelect.appendChild(option);
+                                });
+                            })
+                            .catch(() => {
+                                unitSelect.innerHTML = '<option value="">--Select Unit--</option>' + unitsOptionsHtml;
+                            });
+                    }
+                });
+            }
+
+            // INSTRUCTIONS
+            addInstructionButton.addEventListener("click", function () {
+                const index = instructionList.children.length;
+
+                const stepDiv = document.createElement("div");
+                stepDiv.classList.add("instruction-step", "form-group", "mb-2");
+
+                stepDiv.innerHTML = `
+                        <label>Step ${index + 1}</label>
+                        <textarea name="InstructionSteps[${index}].Description" class="form-control rounded shadow-sm" required></textarea>
+                        <input type="hidden" name="InstructionSteps[${index}].StepNumber" value="${index + 1}" />
+                        <button type="button" class="btn btn-danger btn-sm mt-1 remove-instruction">Remove</button>
+                    `;
+
+                instructionList.appendChild(stepDiv);
+            });
+
+            instructionList.addEventListener("click", function (event) {
+                if (event.target.classList.contains("remove-instruction")) {
+                    event.target.closest(".instruction-step").remove();
+                    updateInstructionStepNumbers();
+                }
+            });
+
+            function updateInstructionStepNumbers() {
+                const steps = instructionList.querySelectorAll(".instruction-step");
+                steps.forEach((stepDiv, index) => {
+                    stepDiv.querySelector("label").innerText = `Step ${index + 1}`;
+                    stepDiv.querySelector("textarea").name = `InstructionSteps[${index}].Description`;
+                    stepDiv.querySelector("input[type='hidden']").name = `InstructionSteps[${index}].StepNumber`;
+                    stepDiv.querySelector("input[type='hidden']").value = index + 1;
+                });
+            }
+
+            // FINAL VALIDATION
             form.addEventListener("submit", function (event) {
                 const ingredients = ingredientList.querySelectorAll(".ingredient-item");
                 let valid = true;
@@ -99,7 +183,7 @@
                 ingredients.forEach(function (ingredientItem) {
                     const name = ingredientItem.querySelector("select[name*='.Name']").value;
                     const amount = ingredientItem.querySelector("input[name*='.Amount']").value;
-                    const unit = ingredientItem.querySelector("input[name*='.Unit']").value;
+                    const unit = ingredientItem.querySelector("select[name*='.UnitId']").value;
 
                     if (!name || !amount || !unit) {
                         valid = false;
@@ -111,28 +195,8 @@
                     event.preventDefault();
                 }
             });
-            function initializeTomSelect(selectElement) {
-                new TomSelect(selectElement, {
-                    create: true,
-                    maxOptions: 5,
-                    valueField: 'value',
-                    labelField: 'value',
-                    searchField: 'value',
-                    load: function (query, callback) {
-                        if (!query.length) return callback();
-
-                        fetch(`/Recipe/SearchIngredients?term=${encodeURIComponent(query)}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                callback(data.map(name => ({ value: name })));
-                            })
-                            .catch(() => callback());
-                    }
-                });
-            }
         });
     </script>
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }

@@ -38,11 +38,20 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
                 var capitalizedName = StringHelper.CapitalizeFirstLetter(suggestion.Name);
                 var newIngredient = new Ingredient
                 {
-                    Name = capitalizedName
+                    Name = capitalizedName,
                 };
                 await _context.Ingredients.AddAsync(newIngredient);
                 await _context.SaveChangesAsync();
+
                 ingredientId = newIngredient.Id;
+
+                var ingredientUnit = new IngredientUnit
+                {
+                    IngredientId = ingredientId,
+                    UnitId = suggestion.MeasurementUnitId,
+                };
+                await _context.IngredientUnits.AddAsync(ingredientUnit);
+                await _context.SaveChangesAsync();
             }
 
             var matchingSuggestions = allPendingIngredients
@@ -83,26 +92,48 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             }
         }
 
-        public async Task<(bool Success, string ErrorMessage)> AddIngredientAsync(string ingredientName)
+        public async Task<(bool Success, string ErrorMessage)> AddIngredientAsync(string ingredientName, List<int> selectedUnitIds)
         {
-            var allIngredients = await _context.Ingredients.ToListAsync();
-            var allPendingIngredients = await _context.PendingIngredients.ToListAsync();
+            var allIngredients = await _context.Ingredients
+                .Include(i => i.IngredientUnits)
+                .ToListAsync();
 
-            var exists = allIngredients
-                .Any(i => StringHelper.FuzzyMatch(i.Name, ingredientName));
+            var matchingIngredient = allIngredients
+                   .FirstOrDefault(i => StringHelper.FuzzyMatch(i.Name, ingredientName));
 
-            if (exists)
+            var selectedUnits = await _context.MeasurementUnits
+                .Where(u => selectedUnitIds
+                .Contains(u.Id)).ToListAsync();
+
+            if (matchingIngredient != null)
             {
-                return (false, "Składnik już istnieje w bazie.");
+                foreach (var unit in selectedUnits)
+                {
+                    if(!matchingIngredient.IngredientUnits.Any(iu => iu.UnitId == unit.Id))
+                    {
+                        matchingIngredient.IngredientUnits.Add(new IngredientUnit
+                        {
+                            IngredientId = unit.Id,
+                            UnitId = unit.Id,
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return (true, "Ingredient already existed, units were added.");
             }
 
             var capitalizedName = StringHelper.CapitalizeFirstLetter(ingredientName);
-            var ingredient = new Ingredient
+            var newIngredient = new Ingredient
             {
-                Name = capitalizedName
+                Name = capitalizedName,
+                IngredientUnits = selectedUnits.Select(unit => new IngredientUnit
+                {
+                    UnitId = unit.Id
+                }).ToList()
             };
 
-            await _context.Ingredients.AddAsync(ingredient);
+            await _context.Ingredients.AddAsync(newIngredient);
             await _context.SaveChangesAsync();
 
             return (true, null);

@@ -1,68 +1,36 @@
-﻿@model IEnumerable<RecipeViewModel>
-
-@{
-    ViewData["Title"] = "Lista Przepisów";
-}
-
-<h1>Lista Przepisów</h1>
-
-<a class="btn btn-primary mb-3" asp-controller="Recipe" asp-action="Create">Dodaj nowy przepis</a>
-
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Autor</th>
-            <th>Nazwa Przepisu</th>
-            <th>Opis</th>
-            <th>Składniki</th>
-            <th>Instrukcja</th>
-            <th>Czas Przygotowania (min)</th>
-            <th>Data Utworzenia</th>
-            <th>Kategoria</th>
-            <th>Ulubiony</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var recipe in Model)
-        {
-            <tr>
-                <td>@recipe.FirstName @recipe.Surname</td>
-                <td>@recipe.RecipeName</td>
-                <td>@recipe.Description</td>
-                <td>
-                    <table class="table table-sm table-bordered mb-0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Nazwa</th>
-                                <th>Ilość</th>
-                                <th>Jednostka</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ingredient in recipe.Ingredients)
-                            {
-                                <tr>
-                                    <td>@ingredient.Name</td>
-                                    <td>@ingredient.Amount</td>
-                                    <td>@ingredient.Unit</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </td>
-                <td>@recipe.Instructions</td>
-                <td>@recipe.Preptime</td>
-                <td>@recipe.CreatedAt.ToString("dd.MM.yyyy")</td>
-                <td>@recipe.CategoryName</td>
-                <td>
-                    <form asp-action="ToggleFavorite" method="post">
-                        <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
-                        <button type="submit">
-                            @(recipe.IsFavorite ? "💖" : "🤍")
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+﻿@model RecipeListViewModel
+@using Organizer_przepisów_kulinarnych.DAL.Entities.Enums
+<h2>Wszystkie Przepisy</h2>
+<div class="row">
+    <div class="col-md-3">
+        @await Html.PartialAsync("_FilterFormPartial", Model)
+        <h5 class="mb-3">Kategorie</h5>
+        <ul>
+            @foreach (var category in Model.Categories)
+            {
+                <li>
+                    <a href="@Url.Action("Category", "Recipe", new { name = category})" style="font-weight: bold; font-size: 18px;">
+                        @category
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+    <div class="col-md-9">
+        <div class="row">
+            @if (Model.Recipes.Any())
+            {
+                @foreach (var recipe in Model.Recipes)
+                {
+                    @await Html.PartialAsync("_RecipeCard", recipe)
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <p>Brak dostępnych przepisów.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

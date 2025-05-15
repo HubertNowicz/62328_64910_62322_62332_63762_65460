@@ -22,6 +22,71 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("MeasurementUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Abbreviation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MeasurementUnits");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Abbreviation = "g",
+                            Name = "gram"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Abbreviation = "kg",
+                            Name = "kilogram"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Abbreviation = "ml",
+                            Name = "mililitr"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Abbreviation = "l",
+                            Name = "litr"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Abbreviation = "szt",
+                            Name = "sztuka"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Abbreviation = "łyżka",
+                            Name = "łyżka"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Abbreviation = "łyżeczka",
+                            Name = "łyżeczka"
+                        });
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -74,6 +139,21 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("Ingredients");
                 });
 
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.IngredientUnit", b =>
+                {
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("IngredientId", "UnitId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("IngredientUnits");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.PendingIngredient", b =>
                 {
                     b.Property<int>("Id")
@@ -81,6 +161,9 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MeasurementUnitId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -96,6 +179,8 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MeasurementUnitId");
 
                     b.HasIndex("SuggestedByUserId");
 
@@ -119,10 +204,6 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                         .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Instructions")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -166,15 +247,16 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("IngredientId");
 
                     b.HasIndex("RecipeId");
+
+                    b.HasIndex("UnitId");
 
                     b.ToTable("RecipeIngredients");
                 });
@@ -215,6 +297,31 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("RecipeInstructionStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StepNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("RecipeInstructionSteps");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.FavoriteRecipe", b =>
                 {
                     b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", "Recipe")
@@ -234,13 +341,40 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.IngredientUnit", b =>
+                {
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Ingredient", "Ingredient")
+                        .WithMany("IngredientUnits")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MeasurementUnit", "Unit")
+                        .WithMany("IngredientUnits")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Unit");
+                });
+
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.PendingIngredient", b =>
                 {
+                    b.HasOne("MeasurementUnit", "MeasurementUnit")
+                        .WithMany()
+                        .HasForeignKey("MeasurementUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.User", "SuggestedByUser")
                         .WithMany()
                         .HasForeignKey("SuggestedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("MeasurementUnit");
 
                     b.Navigation("SuggestedByUser");
                 });
@@ -276,9 +410,35 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("MeasurementUnit", "Unit")
+                        .WithMany("RecipeIngredients")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Ingredient");
 
                     b.Navigation("Recipe");
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("RecipeInstructionStep", b =>
+                {
+                    b.HasOne("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", "Recipe")
+                        .WithMany("InstructionSteps")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("MeasurementUnit", b =>
+                {
+                    b.Navigation("IngredientUnits");
+
+                    b.Navigation("RecipeIngredients");
                 });
 
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Category", b =>
@@ -288,12 +448,16 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
 
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Ingredient", b =>
                 {
+                    b.Navigation("IngredientUnits");
+
                     b.Navigation("RecipeIngredients");
                 });
 
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Recipe", b =>
                 {
                     b.Navigation("FavoriteRecipes");
+
+                    b.Navigation("InstructionSteps");
 
                     b.Navigation("RecipeIngredients");
                 });

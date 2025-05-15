@@ -6,5 +6,6 @@ namespace Organizer_przepisów_kulinarnych.Models
     {
         public List<Ingredient> Ingredients { get; set; } = [];
         public List<PendingIngredientViewModel> PendingIngredients { get; set; } = [];
+        public List<MeasurementUnit> AllUnits { get; set; } = [];
     }
 }

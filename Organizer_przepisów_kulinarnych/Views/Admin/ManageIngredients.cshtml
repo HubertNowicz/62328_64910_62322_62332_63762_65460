@@ -3,25 +3,39 @@
     ViewData["Title"] = "Manage Ingredients";
 }
 <div id="message-container"></div>
+
 <div class="container mb-4">
     <a href="@Url.Action("Index", "Admin")" class="btn btn-secondary">
-        ← Back to Admin Panel
+        ← Powrót
     </a>
 </div>
 
 <div class="card shadow-sm mb-4">
     <div class="card-header">
-        <h5 class="mb-0">Add New Ingredient</h5>
+        <h5 class="mb-0">Dodaj składnik</h5>
     </div>
     <div class="card-body">
         <div class="form-group mb-3">
-            <label for="ingredientName">Ingredient Name</label>
+            <label for="ingredientName">Nazwa</label>
             <input type="text" class="form-control rounded shadow-sm" id="ingredientName" name="ingredientName" required />
         </div>
-
-        <button type="button" class="btn btn-success" onclick="addIngredient()">Add Ingredient</button>
+        <div class="form-group mb-3">
+            <label for="unitSelect">Wybierz miare</label>
+            <div id="unitSelect" class="form-control" style="max-height: 200px; overflow-y: auto;">
+                @foreach (var unit in Model.AllUnits)
+                {
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="unitIds" value="@unit.Id" id="unit-@unit.Id">
+                        <label class="form-check-label" for="unit-@unit.Id">@unit.Name</label>
+                    </div>
+                }
+            </div>
+            <small class="text-muted">Select multiple units by checking the boxes.</small>
+        </div>
+        <button type="button" class="btn btn-success" onclick="addIngredient()">Dodaj składnik</button>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-6">
         <div class="card shadow-sm mb-4">
@@ -30,7 +44,7 @@
             </div>
             <div class="card-body">
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="searchExisting" placeholder="Search existing ingredients..." onkeyup="filterTable('searchExisting', 'existingTable')" />
+                    <input type="text" class="form-control" id="searchExisting" placeholder="Szukaj składnika..." onkeyup="filterTable('searchExisting', 'existingTable')" />
                     <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('searchExisting', 'existingTable')">Clear</button>
                 </div>
                 <div class="table-responsive">
@@ -38,6 +52,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Name</th>
+                                <th>Units</th>
                                 <th style="width: 100px;">Actions</th>
                             </tr>
                         </thead>
@@ -46,8 +61,9 @@
                             {
                                 <tr id="ingredient-row-@ingredient.Id">
                                     <td>@ingredient.Name</td>
+                                    <td>@string.Join(", ", ingredient.IngredientUnits.Select(u => u.Unit.Name))</td>
                                     <td>
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteIngredient(@ingredient.Id)">Delete</button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteIngredient(@ingredient.Id)">Usuń</button>
                                     </td>
                                 </tr>
                             }
@@ -65,7 +81,7 @@
             </div>
             <div class="card-body">
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="searchPending" placeholder="Search pending ingredients..." onkeyup="filterTable('searchPending', 'pendingTable')" />
+                    <input type="text" class="form-control" id="searchPending" placeholder="Search składnika.." onkeyup="filterTable('searchPending', 'pendingTable')" />
                     <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('searchPending', 'pendingTable')">Clear</button>
                 </div>
                 <div class="table-responsive">
@@ -86,10 +102,10 @@
                                     <td>@suggestion.SuggestedAt.ToString("g")</td>
                                     <td>@suggestion.SuggestedBy</td>
                                     <td>
-                                        <button type="button" class="btn btn-success btn-sm" onclick="approveSuggestion(@suggestion.Id)">Approve</button>
+                                        <button type="button" class="btn btn-success btn-sm" onclick="approveSuggestion(@suggestion.Id)">Zaakceptuj</button>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="rejectSuggestion(@suggestion.Id)">Reject</button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="rejectSuggestion(@suggestion.Id)">Odrzuć</button>
                                     </td>
                                 </tr>
                             }
@@ -103,26 +119,20 @@
 
 @section Scripts {
     <script>
-
         function showMessage(type, text) {
             const container = document.getElementById("message-container");
             container.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
-            setTimeout(() => {
-                container.innerHTML = "";
-            }, 5000);
+            setTimeout(() => { container.innerHTML = ""; }, 5000);
         }
 
         function deleteIngredient(id) {
             fetch('/Admin/DeleteIngredient', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${id}`
             })
                 .then(async response => {
                     const data = await response.json();
-
                     if (response.ok) {
                         document.getElementById(`ingredient-row-${id}`).remove();
                         showMessage("success", data.message);
@@ -139,17 +149,15 @@
         function approveSuggestion(id) {
             fetch('/Admin/ApproveSuggestion', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${id}`
             })
                 .then(async response => {
                     const data = await response.json();
-
                     if (response.ok) {
                         document.getElementById(`pending-row-${id}`).remove();
                         showMessage("success", data.message);
+                        location.reload();
                     } else {
                         showMessage("danger", data.message);
                     }
@@ -163,14 +171,11 @@
         function rejectSuggestion(id) {
             fetch('/Admin/RejectSuggestion', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${id}`
             })
                 .then(async response => {
                     const data = await response.json();
-
                     if (response.ok) {
                         document.getElementById(`pending-row-${id}`).remove();
                         showMessage("success", data.message);
@@ -200,26 +205,33 @@
 
         function addIngredient() {
             const name = document.getElementById("ingredientName").value.trim();
+            const unitSelect = document.querySelectorAll('input[name="unitIds"]:checked');
+            const selectedUnitIds = Array.from(unitSelect).map(opt => opt.value);
 
             if (!name) {
                 showMessage("danger", "Please enter an ingredient name.");
                 return;
             }
 
+            if (selectedUnitIds.length === 0) {
+                showMessage("danger", "Please select at least one unit.");
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append("ingredientName", name);
+            selectedUnitIds.forEach(id => formData.append("unitIds", id));
+
             fetch('/Admin/AddIngredient', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `ingredientName=${encodeURIComponent(name)}`
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
             })
                 .then(async response => {
                     const data = await response.json();
-
                     if (response.ok) {
                         showMessage("success", data.message);
                         document.getElementById("ingredientName").value = "";
-
                         location.reload();
                     } else {
                         showMessage("danger", data.message);
@@ -233,6 +245,7 @@
 
     </script>
 }
+
 
 <!--
 Note: CSRF (Cross-Site Request Forgery) protection has been temporarily removed for simplicity.

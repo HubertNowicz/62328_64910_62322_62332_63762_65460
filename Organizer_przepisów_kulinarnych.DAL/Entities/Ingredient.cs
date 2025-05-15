@@ -4,6 +4,8 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
+
+        public ICollection<IngredientUnit> IngredientUnits { get; set; } = new List<IngredientUnit>();
         public ICollection<RecipeIngredient> RecipeIngredients { get; set; } = [];
     }
 }

@@ -5,26 +5,33 @@ namespace Organizer_przepisów_kulinarnych.Models
 {
     public class RecipeCreateViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Nazwa przepisu jest wymagana.")]
+        [Display(Name = "Nazwa")]
         public string RecipeName { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Opis jest wymagany.")]
+        [Display(Name = "Opis")]
         public string Description { get; set; }
 
-        [Required]
-        public List<IngredientViewModel> Ingredients { get; set; } = [];
+        [Required(ErrorMessage = "At least one ingredient is required.")]
+        [Display(Name = "Składniki")]
+        public List<RecipeIngredientViewModel> Ingredients { get; set; } = [];
 
         [Required]
-        public string Instructions { get; set; }
+        [Display(Name = "Instrukcja")]
+        public List<RecipeInstructionStepViewModel> InstructionSteps { get; set; } = [];
 
-        [Required]
-        [Display(Name = "Preparation Time (minutes)")]
+
+        [Required(ErrorMessage = "Czas przygotowania jest wymagany.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Preparation time must be a positive number.")]
+        [Display(Name = "Czas przygotowania (w minutach)")]
         public int Preptime { get; set; }
 
-        [Required]
-        [Display(Name = "Category")]
+        [Required(ErrorMessage = "Katgoria jest wymagana.")]
+        [Display(Name = "Kategoria")]
         public int CategoryId { get; set; }
 
-        public IEnumerable<SelectListItem> Categories { get; set; }
+        public IEnumerable<SelectListItem> Categories { get; set; } = Enumerable.Empty<SelectListItem>();
+        public IEnumerable<SelectListItem> Units { get; set; } = Enumerable.Empty<SelectListItem>();
     }
 }
