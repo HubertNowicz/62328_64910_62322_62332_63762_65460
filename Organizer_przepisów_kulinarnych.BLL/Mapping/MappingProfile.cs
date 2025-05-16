@@ -1,6 +1,6 @@
-﻿using AutoMapper;
-using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
+﻿using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
 using Organizer_przepisów_kulinarnych.DAL.Entities;
+using AutoMapper;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Mapping
 {
@@ -16,15 +16,19 @@ namespace Organizer_przepisów_kulinarnych.BLL.Mapping
                 .ForMember(dest => dest.RecipeIngredients, opt => opt.MapFrom(src => src.RecipeIngredients))
                 .ForMember(dest => dest.InstructionSteps, opt => opt.MapFrom(src => src.InstructionSteps));
 
-            CreateMap<RecipeCreateDto, Recipe>()
-                .ForMember(dest => dest.RecipeIngredients, opt => opt.MapFrom(src => src.RecipeIngredients))
-                .ForMember(dest => dest.InstructionSteps, opt => opt.MapFrom(src => src.InstructionSteps));
-
             CreateMap<RecipeIngredient, RecipeIngredientDto>()
                 .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit))
                  .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
                 .ForMember(dest => dest.IngredientName, opt => opt.MapFrom(src => src.Name))
                 .ReverseMap();
+
+            CreateMap<RecipeCreateDto, Recipe>()
+                .ForMember(dest => dest.RecipeIngredients, opt => opt.MapFrom(src => src.RecipeIngredients))
+                .ForMember(dest => dest.InstructionSteps, opt => opt.MapFrom(src => src.InstructionSteps));
+
+            CreateMap<UserRegistrationDto, User>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.UserRole, opt => opt.Ignore());
 
             CreateMap<RecipeInstructionStep, RecipeInstructionStepDto>().ReverseMap();
 

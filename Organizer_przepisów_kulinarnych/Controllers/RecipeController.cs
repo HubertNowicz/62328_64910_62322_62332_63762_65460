@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
 using Organizer_przepisów_kulinarnych.DAL.Entities;
-using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
 using Organizer_przepisów_kulinarnych.Models;
+
+// add recipefilterdto or viemModel to clean this up
 
 namespace Organizer_przepisów_kulinarnych.Controllers
 {
@@ -26,15 +27,11 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> Index(
-            bool filterUnder30,
-            bool filterBetween30And60,
-            bool filterOver60,
-            SortOption sortOption)
+        public async Task<IActionResult> Index(RecipeListViewModel model)
         {
             var recipes = await _recipeService.GetAllRecipesAsync();
-            var filteredRecipes = _recipeService.GetFilteredRecipes(
-                recipes, filterUnder30, filterBetween30And60, filterOver60, sortOption);
+            var filteredRecipes = _recipeService.GetFilteredRecipes(recipes ,model.FilterUnder30,model.FilterBetween30And60,model.FilterOver60, model.SortOption);
+
             var categories = await _recipeService.GetAllCategoriesAsync();
 
             var favoriteRecipesIds = new List<int>();
@@ -56,10 +53,10 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             return View(new RecipeListViewModel
             {
                 Recipes = recipeViewModels,
-                FilterUnder30 = filterUnder30,
-                FilterBetween30And60 = filterBetween30And60,
-                FilterOver60 = filterOver60,
-                SortOption = sortOption,
+                FilterUnder30 = model.FilterUnder30,
+                FilterBetween30And60 = model.FilterBetween30And60,
+                FilterOver60 = model.FilterOver60,
+                SortOption = model.SortOption,
                 Categories = categories.Select(c => c.Name).ToList(),
                 ControllerName = ControllerContext.ActionDescriptor.ControllerName,
                 ActionName = ControllerContext.ActionDescriptor.ActionName
@@ -68,15 +65,10 @@ namespace Organizer_przepisów_kulinarnych.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Category(
-            string name,
-            bool filterUnder30,
-            bool filterBetween30And60,
-            bool filterOver60,
-            SortOption sortOption)
+        public async Task<IActionResult> Category(string name, RecipeListViewModel model)
         {
             var recipes = await _recipeService.GetRecipesByCategoryAsync(name);
-            var filteredRecipes = _recipeService.GetFilteredRecipes(recipes, filterUnder30, filterBetween30And60, filterOver60, sortOption);
+            var filteredRecipes = _recipeService.GetFilteredRecipes(recipes,model.FilterUnder30,model.FilterBetween30And60, model.FilterOver60, model.SortOption);
 
             var favoriteRecipeIds = new List<int>();
             if (User.Identity?.IsAuthenticated == true)
@@ -87,7 +79,6 @@ namespace Organizer_przepisów_kulinarnych.Controllers
 
             var recipeDtos = _mapper.Map<List<RecipeDto>>(filteredRecipes);
             var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipeDtos);
-
             foreach (var viewModel in recipeViewModels)
             {
                 viewModel.IsFavorite = favoriteRecipeIds.Contains(viewModel.RecipeId);
@@ -96,33 +87,25 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             return View("Category", new RecipeListViewModel
             {
                 Recipes = recipeViewModels,
-                FilterUnder30 = filterUnder30,
-                FilterBetween30And60 = filterBetween30And60,
-                FilterOver60 = filterOver60,
-                SortOption = sortOption,
+                FilterUnder30 = model.FilterUnder30,
+                FilterBetween30And60 = model.FilterBetween30And60,
+                FilterOver60 = model.FilterOver60,
+                SortOption = model.SortOption,
                 SelectedCategory = name,
                 ControllerName = ControllerContext.ActionDescriptor.ControllerName,
                 ActionName = ControllerContext.ActionDescriptor.ActionName
             });
         }
         [HttpGet]
-        public async Task<IActionResult> MyRecipes(
-            bool filterUnder30,
-            bool filterBetween30And60,
-            bool filterOver60,
-            SortOption sortOption)
+        public async Task<IActionResult> MyRecipes(RecipeListViewModel model)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
-
             var recipes = await _recipeService.GetUserRecipesAsync(userId);
-            var filteredRecipes = _recipeService.GetFilteredRecipes(
-                recipes, filterUnder30, filterBetween30And60, filterOver60, sortOption);
-
+            var filteredRecipes = _recipeService.GetFilteredRecipes(recipes, model.FilterUnder30, model.FilterBetween30And60, model.FilterOver60, model.SortOption);
             var favoriteRecipeIds = await _favoriteRecipeService.GetFavoriteRecipesIdsForUserAsync(userId);
 
             var recipeDtos = _mapper.Map<List<RecipeDto>>(filteredRecipes);
             var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipeDtos);
-
             foreach (var vm in recipeViewModels)
             {
                 vm.IsFavorite = favoriteRecipeIds.Contains(vm.RecipeId);
@@ -132,10 +115,10 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             return View(new RecipeListViewModel
             {
                 Recipes = recipeViewModels,
-                FilterUnder30 = filterUnder30,
-                FilterBetween30And60 = filterBetween30And60,
-                FilterOver60 = filterOver60,
-                SortOption = sortOption,
+                FilterUnder30 = model.FilterUnder30,
+                FilterBetween30And60 = model.FilterBetween30And60,
+                FilterOver60 = model.FilterOver60,
+                SortOption = model.SortOption,
                 ControllerName = ControllerContext.ActionDescriptor.ControllerName,
                 ActionName = ControllerContext.ActionDescriptor.ActionName
             });
@@ -149,7 +132,6 @@ namespace Organizer_przepisów_kulinarnych.Controllers
 
             var recipeDto = _mapper.Map<RecipeDto>(recipe);
             var recipeViewModel = _mapper.Map<RecipeViewModel>(recipeDto);
-
             if (User.Identity?.IsAuthenticated == true)
             {
                 var userId = await _userService.GetCurrentUserIdAsync(User);
