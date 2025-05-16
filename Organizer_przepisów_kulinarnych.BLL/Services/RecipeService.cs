@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Organizer_przepisów_kulinarnych.BLL.Helpers;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
 using Organizer_przepisów_kulinarnych.DAL.DbContexts;

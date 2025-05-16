@@ -1,19 +1,22 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Organizer_przepisów_kulinarnych.DAL.Entities;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
 using Organizer_przepisów_kulinarnych.Models;
 using System.Security.Claims;
 using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
+using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
+using AutoMapper;
 
 public class AccountController : Controller
 {
     private readonly IUserService _userService;
+    private readonly IMapper _mapper;
 
-    public AccountController(IUserService userService)
+    public AccountController(IMapper mapper, IUserService userService)
     {
         _userService = userService;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -28,32 +31,19 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = _userService.ValidateCredentials(model.Username, model.Password);
-        if (user == null)
+        var principal = _userService.AuthenticateUser(model.Username, model.Password);
+        if (principal == null)
         {
             ModelState.AddModelError("", "Invalid credentials");
             return View(model);
         }
 
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.UserRole.ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-        };
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-        if (user.UserRole == UserRole.Admin)
-        {
-            return RedirectToAction("Index", "Admin");
-        }
-        else
-        {
-            return RedirectToAction("Index", "Home");
-        }
+        var role = principal.FindFirst(ClaimTypes.Role)?.Value;
+        return role == UserRole.Admin.ToString()
+            ? RedirectToAction("Index", "Admin")
+            : RedirectToAction("Index", "Home");
     }
 
     public async Task<IActionResult> Logout()
@@ -61,6 +51,7 @@ public class AccountController : Controller
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Login", "Account");
     }
+
     [HttpGet]
     public IActionResult Register()
     {
@@ -71,37 +62,28 @@ public class AccountController : Controller
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(model);
-
-        var existingUser = _userService.GetByUsername(model.Username);
-        if (existingUser != null)
         {
-            ModelState.AddModelError("Username", "Username already taken");
             return View(model);
         }
 
-        var user = new User
+        var dto = _mapper.Map<UserRegistrationDto>(model);
+        var result = await _userService.RegisterUserAsync(dto);
+        if (!result.Success)
         {
-            Username = model.Username,
-            FirstName = model.FirstName,
-            Surname = model.Surname,
-            Email = model.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            UserRole = UserRole.User
-        };
+            ModelState.AddModelError("", result.ErrorMessage!);
+            return View(model);
+        }
 
-        await _userService.CreateAsync(user);
+        var principal = _userService.AuthenticateUser(model.Username, model.Password);
+        if (principal == null)
+        {
+            ModelState.AddModelError("", "Invalid credentials");
+            return View(model);
+        }
 
-        var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Role, user.UserRole.ToString())
-    };
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
         return RedirectToAction("Index", "Home");
     }
 }
+
