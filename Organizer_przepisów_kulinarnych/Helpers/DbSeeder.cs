@@ -61,13 +61,13 @@ namespace Organizer_przepisów_kulinarnych.Helpers
 
             var measurementUnits = new List<MeasurementUnit>
             {
-                new MeasurementUnit { Id = 1, Name = "gram", Abbreviation = "g" },
-                new MeasurementUnit { Id = 2, Name = "kilogram", Abbreviation = "kg" },
-                new MeasurementUnit { Id = 3, Name = "mililitr", Abbreviation = "ml" },
-                new MeasurementUnit { Id = 4, Name = "litr", Abbreviation = "l" },
-                new MeasurementUnit { Id = 5, Name = "sztuka", Abbreviation = "szt" },
-                new MeasurementUnit { Id = 6, Name = "łyżka", Abbreviation = "łyżka" },
-                new MeasurementUnit { Id = 7, Name = "łyżeczka", Abbreviation = "łyżeczka" }
+                new MeasurementUnit { /*Id = 1,*/ Name = "gram", Abbreviation = "g" },
+                new MeasurementUnit { /*Id = 2,*/ Name = "kilogram", Abbreviation = "kg" },
+                new MeasurementUnit { /*Id = 3,*/ Name = "mililitr", Abbreviation = "ml" },
+                new MeasurementUnit {/* Id = 4,*/ Name = "litr", Abbreviation = "l" },
+                new MeasurementUnit { /*Id = 5,*/ Name = "sztuka", Abbreviation = "szt" },
+                new MeasurementUnit { /*Id = 6,*/ Name = "łyżka", Abbreviation = "łyżka" },
+                new MeasurementUnit { /*Id = 7,*/ Name = "łyżeczka", Abbreviation = "łyżeczka" }
             };
 
             context.MeasurementUnits.AddRange(measurementUnits);

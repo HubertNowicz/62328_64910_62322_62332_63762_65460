@@ -1,0 +1,87 @@
+﻿@model List<RecipeUserViewModel>
+@{
+    ViewData["Title"] = "Przepisy użytkownika";
+  
+
+}
+
+<h2>Przepisy użytkownika: @ViewBag.UserFullName</h2>
+
+@if (!Model.Any())
+{
+    <p>Ten użytkownik nie ma jeszcze żadnych przepisów.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Tytuł</th>
+                <th>Opis</th>
+                <th>Kategoria</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var recipe in Model)
+            {
+                <tr>
+                    <td>@recipe.RecipeName</td>
+                    <td>@recipe.Description</td>
+                    <td>@recipe.CategoryName</td>
+                 
+                    <td>
+                        <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="btn btn-sm btn-outline-info">
+                            Podgląd
+                        </a>
+                        <button type="button"
+                                class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteRecipeModal"
+                                data-recipe-id="@recipe.Id"
+                                data-user-id="@ViewBag.UserId">
+                            Usuń
+                        </button>
+
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-labelledby="deleteRecipeLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-action="DeleteRecipe">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteRecipeLabel">Potwierdzenie usunięcia</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                    </div>
+                    <div class="modal-body">
+                        Czy na pewno chcesz usunąć ten przepis?
+                        <input type="hidden" id="deleteRecipeId" name="id" />
+                        <input type="hidden" id="deleteUserId" name="userId" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                        <button type="submit" class="btn btn-danger">Usuń</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        var deleteModal = document.getElementById('deleteRecipeModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var recipeId = button.getAttribute('data-recipe-id');
+            var userId = button.getAttribute('data-user-id');
+
+            document.getElementById('deleteRecipeId').value = recipeId;
+            document.getElementById('deleteUserId').value = userId;
+        });
+    </script>
+
+}
+<a asp-action="UsersList" class="btn btn-secondary">Wróć</a>

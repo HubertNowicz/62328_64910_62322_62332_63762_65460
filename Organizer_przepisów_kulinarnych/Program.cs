@@ -14,6 +14,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IFavortieRecipeService, FavoriteRecipeService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddSession();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -1,6 +1,7 @@
 ﻿using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
 using Organizer_przepisów_kulinarnych.DAL.Entities;
 using AutoMapper;
+using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Mapping
 {
@@ -29,6 +30,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Mapping
             CreateMap<UserRegistrationDto, User>()
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.UserRole, opt => opt.Ignore());
+         
 
             CreateMap<RecipeInstructionStep, RecipeInstructionStepDto>().ReverseMap();
 

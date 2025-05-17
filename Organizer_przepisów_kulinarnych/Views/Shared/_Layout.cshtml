@@ -34,10 +34,10 @@
                                 @await Component.InvokeAsync("CategoryDropdown")
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Zaloguj się</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Zarejestruj się</a>
                             </li>
                         }
                         else
@@ -48,7 +48,7 @@
                             @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Admin Panel</a>
+                                    <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Panel Administratora</a>
                                 </li>
                             }
                             <li class="nav-item dropdown">
