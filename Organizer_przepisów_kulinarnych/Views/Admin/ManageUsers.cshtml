@@ -1,4 +1,4 @@
-﻿@model List<UserListView>
+﻿@model List<UserViewModel>
 
 @{
     ViewData["Title"] = "Zarządzanie użytkownikami";
@@ -86,12 +86,6 @@
             var button = event.relatedTarget;
             var userId = button.getAttribute('data-user-id');
             var userRole = button.getAttribute('data-user-role');
-
-            // if (userId === currentUserId) {
-            //     alert("Nie możesz usunąć własnego konta.");
-            //     event.preventDefault();
-            //     return;
-            // }
 
             if (userRole === "Admin") {
                 alert("Nie możesz usunąć konta administratora.");

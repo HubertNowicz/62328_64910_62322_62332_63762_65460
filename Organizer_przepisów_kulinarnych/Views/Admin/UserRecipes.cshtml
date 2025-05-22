@@ -1,13 +1,16 @@
-﻿@model List<RecipeUserViewModel>
+﻿@model Organizer_przepisów_kulinarnych.Models.RecipeListViewModel
+
 @{
     ViewData["Title"] = "Przepisy użytkownika";
-  
-
+    var firstRecipe = Model.Recipes.FirstOrDefault();
+    var userFullName = firstRecipe != null
+        ? $"{firstRecipe.User.FirstName} {firstRecipe.User.Surname}"
+        : "Nieznany użytkownik";
 }
 
-<h2>Przepisy użytkownika: @ViewBag.UserFullName</h2>
+<h2>Przepisy użytkownika: @userFullName</h2>
 
-@if (!Model.Any())
+@if (!Model.Recipes.Any())
 {
     <p>Ten użytkownik nie ma jeszcze żadnych przepisów.</p>
 }
@@ -23,13 +26,12 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var recipe in Model)
+            @foreach (var recipe in Model.Recipes)
             {
                 <tr>
                     <td>@recipe.RecipeName</td>
                     <td>@recipe.Description</td>
-                    <td>@recipe.CategoryName</td>
-                 
+                    <td>@recipe.Category.Name</td>
                     <td>
                         <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="btn btn-sm btn-outline-info">
                             Podgląd
@@ -39,11 +41,9 @@ else
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteRecipeModal"
                                 data-recipe-id="@recipe.Id"
-                                data-user-id="@ViewBag.UserId">
+                                data-user-id="@recipe.User.Id">
                             Usuń
                         </button>
-
-
                     </td>
                 </tr>
             }
@@ -71,6 +71,7 @@ else
             </div>
         </div>
     </div>
+
     <script>
         var deleteModal = document.getElementById('deleteRecipeModal');
         deleteModal.addEventListener('show.bs.modal', function (event) {
@@ -82,6 +83,6 @@ else
             document.getElementById('deleteUserId').value = userId;
         });
     </script>
-
 }
-<a asp-action="UsersList" class="btn btn-secondary">Wróć</a>
+
+<a asp-action="ManageUsers" class="btn btn-secondary">Wróć</a>

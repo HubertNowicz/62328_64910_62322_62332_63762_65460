@@ -59,7 +59,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterViewModel model)
+    public async Task<IActionResult> Register(UserRegisterViewModel model)
     {
         if (!ModelState.IsValid)
         {

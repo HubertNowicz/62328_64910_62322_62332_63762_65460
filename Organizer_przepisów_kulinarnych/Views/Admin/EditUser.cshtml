@@ -1,4 +1,4 @@
-﻿@model UserEditViewModel
+﻿@model UserViewModel
 
 @{
     ViewData["Title"] = "Edytuj użytkownika";
@@ -34,7 +34,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
-    <a asp-action="UsersList" class="btn btn-secondary">Anuluj</a>
+    <a asp-action="ManageUsers" class="btn btn-secondary">Anuluj</a>
 </form>
 
 @section Scripts {

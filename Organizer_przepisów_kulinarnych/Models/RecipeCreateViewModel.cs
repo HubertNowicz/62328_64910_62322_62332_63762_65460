@@ -5,6 +5,7 @@ namespace Organizer_przepisów_kulinarnych.Models
 {
     public class RecipeCreateViewModel
     {
+        public int Id { get; set; }
         [Required(ErrorMessage = "Nazwa przepisu jest wymagana.")]
         [Display(Name = "Nazwa")]
         public string RecipeName { get; set; }

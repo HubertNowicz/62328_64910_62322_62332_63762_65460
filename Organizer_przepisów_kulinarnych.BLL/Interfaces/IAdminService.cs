@@ -1,4 +1,5 @@
-﻿using Organizer_przepisów_kulinarnych.DAL.Entities;
+﻿using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
+using Organizer_przepisów_kulinarnych.DAL.Entities;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Interfaces
 {
@@ -6,7 +7,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Interfaces
     {
         Task ApprovePendingIngredientAsync(int suggestedIngredientId);
         Task RejectPendingIngredientAsync(int suggestedIngredientId);
-        Task<List<PendingIngredient>> GetAllPendingIngredientsAsync();
+        Task<List<PendingIngredientDto>> GetAllPendingIngredientsAsync();
         Task<(bool Success, string ErrorMessage)> AddIngredientAsync(string ingredientName, List<int> selectedUnitIds);
         Task<(bool Success, string Message)> DeleteIngredientAsync(int id);
     }

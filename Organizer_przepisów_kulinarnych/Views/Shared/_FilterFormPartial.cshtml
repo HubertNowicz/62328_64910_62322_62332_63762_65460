@@ -7,26 +7,26 @@
         <input type="hidden" name="name" value="@Context.Request.Query["name"]" />
     }
     <label class="mt-3">Sortowanie:</label>
-    <select name="sortOption" id="sortOption" class="form-select" onchange="cleanDefaultSortAndSubmit()">
-        <option value="None" selected="@(Model.SortOption == SortOption.None)">Trafność</option>
-        <option value="Newest" selected="@(Model.SortOption == SortOption.Newest)">Najnowsze</option>
-        <option value="Popularity" selected="@(Model.SortOption == SortOption.Popularity)">Popularne</option>
+    <select name="SortOption" id="sortOption" class="form-select" onchange="cleanDefaultSortAndSubmit()">
+        <option value="None" selected="@(Model.Filters.SortOption == RecipeSortOption.None)">Trafność</option>
+        <option value="Newest" selected="@(Model.Filters.SortOption == RecipeSortOption.Newest)">Najnowsze</option>
+        <option value="Popularity" selected="@(Model.Filters.SortOption == RecipeSortOption.Popularity)">Popularne</option>
     </select>
 
     <label class="form-label">Czas przygotowania:</label>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="filterUnder30" value="true"
-        @(Model.FilterUnder30 ? "checked" : "") onchange="cleanDefaultSortAndSubmit()" />
+        <input class="form-check-input" type="checkbox" name="FilterUnder30" value="true"
+        @(Model.Filters.FilterUnder30 ? "checked" : "") onchange="cleanDefaultSortAndSubmit()" />
         <label class="form-check-label">Do 30 min</label>
     </div>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="filterBetween30And60" value="true"
-        @(Model.FilterBetween30And60 ? "checked" : "") onchange="cleanDefaultSortAndSubmit()" />
+        <input class="form-check-input" type="checkbox" name="FilterBetween30And60" value="true"
+        @(Model.Filters.FilterBetween30And60 ? "checked" : "") onchange="cleanDefaultSortAndSubmit()" />
         <label class="form-check-label">30–60 min</label>
     </div>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="filterOver60" value="true"
-        @(Model.FilterOver60 ? "checked" : "") onchange="cleanDefaultSortAndSubmit()" />
+        <input class="form-check-input" type="checkbox" name="FilterOver60" value="true"
+        @(Model.Filters.FilterOver60 ? "checked" : "") onchange="cleanDefaultSortAndSubmit()" />
         <label class="form-check-label">Powyżej 60 min</label>
     </div>
 </form>
