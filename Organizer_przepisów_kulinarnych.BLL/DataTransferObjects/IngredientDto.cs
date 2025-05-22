@@ -2,7 +2,8 @@
 {
     public class IngredientDto
     {
-        public int IngredientId { get; set; }
-        public string IngredientName { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public List<MeasurementUnitDto> Units { get; set; }
     }
 }

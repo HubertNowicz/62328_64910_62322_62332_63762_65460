@@ -41,50 +41,6 @@ namespace Organizer_przepisów_kulinarnych.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MeasurementUnits");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Abbreviation = "g",
-                            Name = "gram"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Abbreviation = "kg",
-                            Name = "kilogram"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Abbreviation = "ml",
-                            Name = "mililitr"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Abbreviation = "l",
-                            Name = "litr"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Abbreviation = "szt",
-                            Name = "sztuka"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Abbreviation = "łyżka",
-                            Name = "łyżka"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Abbreviation = "łyżeczka",
-                            Name = "łyżeczka"
-                        });
                 });
 
             modelBuilder.Entity("Organizer_przepisów_kulinarnych.DAL.Entities.Category", b =>

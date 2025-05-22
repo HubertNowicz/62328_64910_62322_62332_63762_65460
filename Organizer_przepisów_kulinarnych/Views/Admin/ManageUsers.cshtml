@@ -1,0 +1,100 @@
+﻿@model List<UserViewModel>
+
+@{
+    ViewData["Title"] = "Zarządzanie użytkownikami";
+}
+<script>
+    const currentUserId = "@User.FindFirst("Id")?.Value";
+</script>
+<h2>Zarządzanie użytkownikami</h2>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-success">@TempData["Info"]</div>
+}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Login</th>
+            <th>Imię</th>
+            <th>Nazwisko</th>
+            <th>Email</th>
+
+            <th>Akcje</th>
+            <th>Przepisy użytkownika</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Username</td>
+                <td>@user.FirstName</td>
+                <td>@user.Surname</td>
+                <td>@user.Email</td>
+
+                <td>
+                    <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-primary">Edytuj</a>
+                    <button type="button"
+                            class="btn btn-sm btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-user-id="@user.Id"
+                            data-username="@user.Username">
+                        Usuń
+                    </button>
+
+
+                </td>
+                <td>
+                    <a asp-action="UserRecipes" asp-route-id="@user.Id" class="btn btn-sm btn-primary">Przepisy użytkownika</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="DeleteUser">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Potwierdzenie usunięcia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Czy na pewno chcesz usunąć użytkownika: <strong id="modalUsername"></strong>?</p>
+                    <input type="hidden" name="id" id="deleteUserId" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <button type="submit" class="btn btn-danger">Usuń</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var confirmDeleteModal = document.getElementById('confirmDeleteModal');
+        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var userId = button.getAttribute('data-user-id');
+            var userRole = button.getAttribute('data-user-role');
+
+            if (userRole === "Admin") {
+                alert("Nie możesz usunąć konta administratora.");
+                event.preventDefault();
+                return;
+            }
+
+            var input = confirmDeleteModal.querySelector('#deleteUserId');
+            input.value = userId;
+        });
+    </script>
+}

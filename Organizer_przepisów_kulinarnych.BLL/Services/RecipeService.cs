@@ -1,194 +1,229 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
 using Organizer_przepisów_kulinarnych.BLL.Helpers;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
-using Organizer_przepisów_kulinarnych.DAL.DbContexts;
 using Organizer_przepisów_kulinarnych.DAL.Entities;
 using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
+using Organizer_przepisów_kulinarnych.DAL.Interfaces;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Services
 {
     public class RecipeService : IRecipeService
     {
-        private ApplicationDbContext _context;
+        private readonly IRecipeRepository _recipeRepository;
+        private readonly IIngredientRepository _ingredientRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMeasurementUnitRepository _unitRepository;
+        private readonly IMapper _mapper;
 
-        public RecipeService(ApplicationDbContext context)
+        public RecipeService(
+            IRecipeRepository recipeRepository,
+            IIngredientRepository ingredientRepository,
+            ICategoryRepository categoryRepository,
+            IMeasurementUnitRepository unitRepository,
+            IMapper mapper)
         {
-            _context = context;
+            _recipeRepository = recipeRepository;
+            _ingredientRepository = ingredientRepository;
+            _categoryRepository = categoryRepository;
+            _unitRepository = unitRepository;
+            _mapper = mapper;
         }
-        public async Task<List<Recipe>> GetAllRecipesAsync()
+        public async Task<List<RecipeDto>> GetAllRecipesAsync()
         {
-            var recipes = await _context.Recipes
-                .Include(r => r.User)
-                .Include(r => r.Category)
-                .Include(r => r.FavoriteRecipes)
-                .Include(r => r.InstructionSteps)
-                .Include(r => r.RecipeIngredients)
-                    .ThenInclude(ri => ri.Unit)
-                .Include(r => r.RecipeIngredients)
-                    .ThenInclude(ri => ri.Ingredient)
-                .ToListAsync();
-
-            return recipes;
+            var recipes = await _recipeRepository.GetAllAsync();
+            return _mapper.Map<List<RecipeDto>>(recipes);
         }
 
-        public List<Recipe> GetFilteredRecipes(
-            List<Recipe> recipes,
-            bool filterUnder30,
-            bool filterBetween30And60,
-            bool filterOver60,
-            SortOption sortOption)
+        public Task<List<RecipeDto>> GetFilteredRecipes(List<RecipeDto> recipes, RecipeFilter filter)
         {
-            if (filterUnder30 || filterBetween30And60 || filterOver60)
+            if (filter.FilterUnder30 || filter.FilterBetween30And60 || filter.FilterOver60)
             {
                 recipes = recipes.Where(r =>
-                    (filterUnder30 && r.Preptime <= 30) ||
-                    (filterBetween30And60 && r.Preptime >= 30 && r.Preptime <= 60) ||
-                    (filterOver60 && r.Preptime > 60)
-                ).ToList();
+                    (filter.FilterUnder30 && r.Preptime <= 30) ||
+                    (filter.FilterBetween30And60 && r.Preptime >= 30 && r.Preptime <= 60) ||
+                    (filter.FilterOver60 && r.Preptime > 60)).ToList();
             }
 
-            recipes = sortOption switch
+            recipes = filter.SortOption switch
             {
-                SortOption.Newest => recipes.OrderByDescending(r => r.CreatedAt).ToList(),
-                SortOption.Popularity => recipes.OrderByDescending(r => r.FavoriteRecipes.Count).ToList(),
+                RecipeSortOption.Newest => recipes.OrderByDescending(r => r.CreatedAt).ToList(),
+                RecipeSortOption.Popularity => recipes.OrderByDescending(r => r.FavoriteCount).ToList(),
                 _ => recipes
             };
 
-            return recipes;
+            return Task.FromResult(recipes);
+        }
+
+        public async Task<List<RecipeDto>> GetUserRecipesAsync(int userId)
+        {
+            var recipes = await _recipeRepository.GetByUserIdAsync(userId);
+            return _mapper.Map<List<RecipeDto>>(recipes);
         }
 
 
-        public async Task<List<Recipe>> GetUserRecipesAsync(int userId)
+        public async Task<RecipeDto> GetRecipeByIdAsync(int id)
         {
-            var recipes = await _context.Recipes
-                .Include(r => r.Category)
-                .Include(r => r.User)
-                .Include(r => r.InstructionSteps)
-                .Include(r => r.RecipeIngredients)
-                    .ThenInclude(ri => ri.Ingredient)
-                .Include(r => r.RecipeIngredients)
-                    .ThenInclude(ri => ri.Unit)
-                .Where(r => r.UserId == userId)
-                .ToListAsync();
-            return recipes;
+            var recipe = await _recipeRepository.GetByIdAsync(id);
+            return _mapper.Map<RecipeDto>(recipe);
         }
 
-        public async Task<Recipe> GetRecipeByIdAsync(int id)
+        public async Task<List<RecipeDto>> GetRecipesByCategoryAsync(string categoryName)
         {
-            return await _context.Recipes
-                .Include(r => r.User)
-                .Include(r => r.Category)
-                .Include(r => r.FavoriteRecipes)
-                .Include(r => r.InstructionSteps)
-                .Include(r => r.RecipeIngredients)
-                    .ThenInclude(ri => ri.Ingredient)
-                .Include(r => r.RecipeIngredients)
-                    .ThenInclude(ri => ri.Unit)
-                .FirstAsync(r => r.Id == id);
+            var recipes = await _recipeRepository.GetByCategoryAsync(categoryName);
+            return _mapper.Map<List<RecipeDto>>(recipes);
         }
 
-        public async Task<List<Recipe>> GetRecipesByCategoryAsync(string categoryName)
+
+        public async Task<List<IngredientDto>> GetAllIngredientsAsync()
         {
-            return await _context.Recipes
-                .Include(r => r.User)
-                .Include(r => r.Category)
-                .Include(r => r.InstructionSteps)
-                .Include(r => r.FavoriteRecipes)
-                .Include(r => r.RecipeIngredients)
-                .ThenInclude(ri => ri.Ingredient)
-                .Include(r => r.RecipeIngredients)
-                .ThenInclude(ri => ri.Unit)
-                .Where(r => r.Category.Name == categoryName)
-                .ToListAsync();
+            var ingredients = await _ingredientRepository.GetAllAsync();
+            return _mapper.Map<List<IngredientDto>>(ingredients);
         }
 
-        public async Task<List<Ingredient>> GetAllIngredientsAsync()
+        public async Task<IEnumerable<MeasurementUnitDto>> GetAllUnitsAsync()
         {
-            return await _context.Ingredients
-                .Include(i => i.IngredientUnits)
-                    .ThenInclude(iu => iu.Unit)
-                .ToListAsync();
-        }
-        public async Task<IEnumerable<MeasurementUnit>> GetAllUnitsAsync()
-        {
-            return await _context.MeasurementUnits.ToListAsync();
+            var units = await _unitRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<MeasurementUnitDto>>(units);
         }
 
-        public async Task<List<Category>> GetAllCategoriesAsync()
+        public async Task<List<MeasurementUnit>> GetUnitsForIngredientAsync(string ingredientName)
         {
-            return await _context.Categories.ToListAsync();
+            return await _ingredientRepository.GetUnitsByIngredientNameAsync(ingredientName);
         }
-        public async Task CreateRecipeAsync(Recipe recipe, int userId)
+
+        public async Task<List<CategoryDto>> GetAllCategoriesAsync()
         {
-            var allIngredients = await _context.Ingredients.ToListAsync();
-            var allPendingIngredients = await _context.PendingIngredients.ToListAsync();
+            var categories = await _categoryRepository.GetAllAsync();
+            return _mapper.Map<List<CategoryDto>>(categories);
+        }
+
+        public async Task CreateRecipeAsync(RecipeCreateDto recipeDto)
+        {
+            var recipe = _mapper.Map<Recipe>(recipeDto);
+            var allIngredients = await _ingredientRepository.GetAllAsync();
+            var allPendingIngredients = await _ingredientRepository.GetAllPendingAsync();
+
             foreach (var recipeIngredient in recipe.RecipeIngredients)
             {
-                var existingIngredient = allIngredients
-                    .FirstOrDefault(i => StringHelper.FuzzyMatch(i.Name, recipeIngredient.Name));
-
-                if (existingIngredient != null)
+                var existing = allIngredients.FirstOrDefault(i => StringHelper.FuzzyMatch(i.Name, recipeIngredient.Name));
+                if (existing != null)
                 {
-                    recipeIngredient.IngredientId = existingIngredient.Id;
-                    recipeIngredient.Name = existingIngredient.Name;
+                    recipeIngredient.IngredientId = existing.Id;
+                    recipeIngredient.Name = existing.Name;
+                    recipeIngredient.Ingredient = null;
                 }
                 else
                 {
                     recipeIngredient.IngredientId = null;
                     recipeIngredient.Ingredient = null;
-                    var capitalizedName = StringHelper.CapitalizeFirstLetter(recipeIngredient.Name);
+                    var capitalized = StringHelper.CapitalizeFirstLetter(recipeIngredient.Name);
 
-                    var alreadySuggested = allPendingIngredients
-                        .Any(s => StringHelper.FuzzyMatch(s.Name, capitalizedName));
-
+                    var alreadySuggested = allPendingIngredients.Any(s => StringHelper.FuzzyMatch(s.Name, capitalized));
                     if (!alreadySuggested)
                     {
-                        _context.PendingIngredients.Add(new PendingIngredient
+                        await _ingredientRepository.AddPendingAsync(new PendingIngredient
                         {
-                            Name = capitalizedName,
-                            SuggestedByUserId = userId,
+                            Name = capitalized,
+                            SuggestedByUserId = recipeDto.UserId,
                             MeasurementUnitId = recipeIngredient.UnitId
                         });
                     }
                 }
             }
-            await _context.Recipes.AddAsync(recipe);
-            await _context.SaveChangesAsync();
+
+            await _recipeRepository.AddAsync(recipe);
+            await _recipeRepository.SaveChangesAsync();
         }
 
-        public async Task DeleteRecipeAsync(Recipe recipe)
+        public async Task UpdateRecipeAsync(int recipeId, RecipeCreateDto recipeDto, int userId)
         {
-            var relatedFavorites = _context.FavoriteRecipes.Where(fr => fr.RecipeId == recipe.Id);
-            _context.FavoriteRecipes.RemoveRange(relatedFavorites);
+            var recipe = await _recipeRepository.GetByIdAsync(recipeId);
+            if (recipe == null)
+            {
+                throw new KeyNotFoundException("Recipe not found");
+            }
 
-            _context.Recipes.Remove(recipe);
-            await _context.SaveChangesAsync();
+            recipe.RecipeName = recipeDto.RecipeName;
+            recipe.Description = recipeDto.Description;
+            recipe.Preptime = recipeDto.Preptime;
+            recipe.CategoryId = recipeDto.CategoryId;
+
+            var allIngredients = await _ingredientRepository.GetAllAsync();
+            var allPendingIngredients = await _ingredientRepository.GetAllPendingAsync();
+
+            recipe.RecipeIngredients.Clear();
+            recipe.InstructionSteps.Clear();
+
+            foreach (var recipeIngredientDto in recipeDto.RecipeIngredients)
+            {
+                var existingIngredient = allIngredients.FirstOrDefault(i => StringHelper.FuzzyMatch(i.Name, recipeIngredientDto.Name));
+                if (existingIngredient != null)
+                {
+                    recipe.RecipeIngredients.Add(new RecipeIngredient
+                    {
+                        IngredientId = existingIngredient.Id,
+                        Name = existingIngredient.Name,
+                        Amount = recipeIngredientDto.Amount,
+                        UnitId = recipeIngredientDto.UnitId
+                    });
+                }
+                else
+                {
+                    var capitalized = StringHelper.CapitalizeFirstLetter(recipeIngredientDto.Name);
+
+                    var alreadySuggested = allPendingIngredients.Any(s => StringHelper.FuzzyMatch(s.Name, capitalized));
+                    if (!alreadySuggested)
+                    {
+                        await _ingredientRepository.AddPendingAsync(new PendingIngredient
+                        {
+                            Name = capitalized,
+                            SuggestedByUserId = userId,
+                            MeasurementUnitId = recipeIngredientDto.UnitId
+                        });
+                    }
+
+                    recipe.RecipeIngredients.Add(new RecipeIngredient
+                    {
+                        IngredientId = null,
+                        Name = capitalized,
+                        Amount = recipeIngredientDto.Amount,
+                        UnitId = recipeIngredientDto.UnitId
+                    });
+                }
+            }
+
+            foreach (var stepDto in recipeDto.InstructionSteps)
+            {
+                recipe.InstructionSteps.Add(new RecipeInstructionStep
+                {
+                    StepNumber = stepDto.StepNumber,
+                    Description = stepDto.Description
+                });
+            }
+
+            await _recipeRepository.SaveChangesAsync();
         }
+
+        public async Task DeleteRecipeAsync(int recipeId)
+        {
+            var recipe = await _recipeRepository.GetByIdAsync(recipeId);
+            if (recipe == null) throw new Exception("Recipe not found.");
+
+            await _recipeRepository.DeleteAsync(recipe);
+            await _recipeRepository.SaveChangesAsync();
+        }
+
         public async Task<List<string>> MatchingIngredients(string term)
         {
             var ingredients = await GetAllIngredientsAsync();
-
-            var matches = ingredients
+            return ingredients
                 .Where(i => i.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
                 .Select(i => i.Name)
                 .Distinct()
                 .Take(10)
                 .ToList();
-            return matches;
-        }
-        public async Task<List<MeasurementUnit>> GetUnitsForIngredientAsync(string ingredientName)
-        {
-            var ingredient = await _context.Ingredients
-                .Include(i => i.IngredientUnits)
-                .ThenInclude(iu => iu.Unit)
-                .FirstOrDefaultAsync(i => i.Name.ToLower() == ingredientName.ToLower());
-
-            if (ingredient == null)
-            {
-                return await _context.MeasurementUnits.ToListAsync();
-            } 
-
-            return ingredient.IngredientUnits.Select(iu => iu.Unit).ToList();
         }
 
     }

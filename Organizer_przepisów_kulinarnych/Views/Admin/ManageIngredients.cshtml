@@ -1,6 +1,6 @@
 ﻿@model AdminIngredientsViewModel
 @{
-    ViewData["Title"] = "Manage Ingredients";
+    ViewData["Title"] = "Zarządzaj Składnikami";
 }
 <div id="message-container"></div>
 
@@ -61,7 +61,7 @@
                             {
                                 <tr id="ingredient-row-@ingredient.Id">
                                     <td>@ingredient.Name</td>
-                                    <td>@string.Join(", ", ingredient.IngredientUnits.Select(u => u.Unit.Name))</td>
+                                    <td>@string.Join(", ", ingredient.Units.Select(u => u.Name))</td>
                                     <td>
                                         <button type="button" class="btn btn-danger btn-sm" onclick="deleteIngredient(@ingredient.Id)">Usuń</button>
                                     </td>
@@ -97,10 +97,11 @@
                         <tbody>
                             @foreach (var suggestion in Model.PendingIngredients)
                             {
-                                <tr id="pending-row-@suggestion.Id">
+                                <tr id="pending-row-@suggestion.SuggestedByUser">
                                     <td>@suggestion.Name</td>
                                     <td>@suggestion.SuggestedAt.ToString("g")</td>
-                                    <td>@suggestion.SuggestedBy</td>
+                                    <td>@($"{suggestion.SuggestedByUser.FirstName} {suggestion.SuggestedByUser.Surname}")</td>
+                                    <td>@suggestion.MeasurementUnit?.Name</td>
                                     <td>
                                         <button type="button" class="btn btn-success btn-sm" onclick="approveSuggestion(@suggestion.Id)">Zaakceptuj</button>
                                     </td>
@@ -157,14 +158,16 @@
                     if (response.ok) {
                         document.getElementById(`pending-row-${id}`).remove();
                         showMessage("success", data.message);
-                        location.reload();
                     } else {
                         showMessage("danger", data.message);
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    location.reload();
+                    console.error('Fetch error:', error);
                     showMessage("danger", "An unexpected error occurred.");
+                    document.getElementById(`pending-row-${id}`).remove();
+                    location.reload();
                 });
         }
 
@@ -184,8 +187,10 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    location.reload();
+                    console.error('Fetch error:', error);
                     showMessage("danger", "An unexpected error occurred.");
+                    document.getElementById(`pending-row-${id}`).remove();
                 });
         }
 

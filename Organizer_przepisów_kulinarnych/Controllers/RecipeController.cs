@@ -4,10 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
-using Organizer_przepisów_kulinarnych.DAL.Entities;
 using Organizer_przepisów_kulinarnych.Models;
-
-// add recipefilterdto or viemModel to clean this up
 
 namespace Organizer_przepisów_kulinarnych.Controllers
 {
@@ -27,10 +24,10 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> Index(RecipeListViewModel model)
+        public async Task<IActionResult> Index([FromQuery] RecipeFilter filter)
         {
             var recipes = await _recipeService.GetAllRecipesAsync();
-            var filteredRecipes = _recipeService.GetFilteredRecipes(recipes ,model.FilterUnder30,model.FilterBetween30And60,model.FilterOver60, model.SortOption);
+            var filteredRecipes = await _recipeService.GetFilteredRecipes(recipes, filter);
 
             var categories = await _recipeService.GetAllCategoriesAsync();
 
@@ -47,16 +44,13 @@ namespace Organizer_przepisów_kulinarnych.Controllers
 
             foreach (var vm in recipeViewModels)
             {
-                vm.IsFavorite = favoriteRecipesIds.Contains(vm.RecipeId);
+                vm.IsFavorite = favoriteRecipesIds.Contains(vm.Id);
             }
 
             return View(new RecipeListViewModel
             {
                 Recipes = recipeViewModels,
-                FilterUnder30 = model.FilterUnder30,
-                FilterBetween30And60 = model.FilterBetween30And60,
-                FilterOver60 = model.FilterOver60,
-                SortOption = model.SortOption,
+                Filters = filter,
                 Categories = categories.Select(c => c.Name).ToList(),
                 ControllerName = ControllerContext.ActionDescriptor.ControllerName,
                 ActionName = ControllerContext.ActionDescriptor.ActionName
@@ -65,10 +59,10 @@ namespace Organizer_przepisów_kulinarnych.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Category(string name, RecipeListViewModel model)
+        public async Task<IActionResult> Category(string name, [FromQuery] RecipeFilter filter)
         {
             var recipes = await _recipeService.GetRecipesByCategoryAsync(name);
-            var filteredRecipes = _recipeService.GetFilteredRecipes(recipes,model.FilterUnder30,model.FilterBetween30And60, model.FilterOver60, model.SortOption);
+            var filteredRecipes = await _recipeService.GetFilteredRecipes(recipes, filter);
 
             var favoriteRecipeIds = new List<int>();
             if (User.Identity?.IsAuthenticated == true)
@@ -81,44 +75,37 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipeDtos);
             foreach (var viewModel in recipeViewModels)
             {
-                viewModel.IsFavorite = favoriteRecipeIds.Contains(viewModel.RecipeId);
+                viewModel.IsFavorite = favoriteRecipeIds.Contains(viewModel.Id);
             }
 
             return View("Category", new RecipeListViewModel
             {
                 Recipes = recipeViewModels,
-                FilterUnder30 = model.FilterUnder30,
-                FilterBetween30And60 = model.FilterBetween30And60,
-                FilterOver60 = model.FilterOver60,
-                SortOption = model.SortOption,
-                SelectedCategory = name,
+                Filters = filter,
                 ControllerName = ControllerContext.ActionDescriptor.ControllerName,
                 ActionName = ControllerContext.ActionDescriptor.ActionName
             });
         }
         [HttpGet]
-        public async Task<IActionResult> MyRecipes(RecipeListViewModel model)
+        public async Task<IActionResult> MyRecipes([FromQuery] RecipeFilter filter)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
             var recipes = await _recipeService.GetUserRecipesAsync(userId);
-            var filteredRecipes = _recipeService.GetFilteredRecipes(recipes, model.FilterUnder30, model.FilterBetween30And60, model.FilterOver60, model.SortOption);
+            var filteredRecipes = await _recipeService.GetFilteredRecipes(recipes, filter);
             var favoriteRecipeIds = await _favoriteRecipeService.GetFavoriteRecipesIdsForUserAsync(userId);
 
             var recipeDtos = _mapper.Map<List<RecipeDto>>(filteredRecipes);
             var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipeDtos);
             foreach (var vm in recipeViewModels)
             {
-                vm.IsFavorite = favoriteRecipeIds.Contains(vm.RecipeId);
+                vm.IsFavorite = favoriteRecipeIds.Contains(vm.Id);
                 vm.IsUserRecipe = true;
             }
 
             return View(new RecipeListViewModel
             {
                 Recipes = recipeViewModels,
-                FilterUnder30 = model.FilterUnder30,
-                FilterBetween30And60 = model.FilterBetween30And60,
-                FilterOver60 = model.FilterOver60,
-                SortOption = model.SortOption,
+                Filters = filter,
                 ControllerName = ControllerContext.ActionDescriptor.ControllerName,
                 ActionName = ControllerContext.ActionDescriptor.ActionName
             });
@@ -129,16 +116,15 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var recipe = await _recipeService.GetRecipeByIdAsync(id);
+            var recipeViewModel = _mapper.Map<RecipeViewModel>(recipe);
 
-            var recipeDto = _mapper.Map<RecipeDto>(recipe);
-            var recipeViewModel = _mapper.Map<RecipeViewModel>(recipeDto);
             if (User.Identity?.IsAuthenticated == true)
             {
                 var userId = await _userService.GetCurrentUserIdAsync(User);
                 var favoriteRecipesIds = await _favoriteRecipeService.GetFavoriteRecipesIdsForUserAsync(userId);
 
                 recipeViewModel.IsFavorite = favoriteRecipesIds.Contains(recipe.Id);
-                recipeViewModel.IsUserRecipe = recipe.UserId == userId;
+                recipeViewModel.IsUserRecipe = recipe.User.Id == userId;
             }
 
             return View(recipeViewModel);
@@ -171,37 +157,98 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(RecipeCreateViewModel model)
         {
-            // Add validation later in the process
-            //if (!ModelState.IsValid)
-            //{
-            //    var categories = await _recipeService.GetAllCategoriesAsync();
-            //    var units = await _recipeService.GetAllUnitsAsync();
+            if (!ModelState.IsValid)
+            {
+                var categories = await _recipeService.GetAllCategoriesAsync();
+                var units = await _recipeService.GetAllUnitsAsync();
 
-            //    model.Categories = categories.Select(c => new SelectListItem
-            //    {
-            //        Value = c.Id.ToString(),
-            //        Text = c.Name
-            //    });
+                model.Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                });
 
-            //    model.Units = units.Select(u => new SelectListItem
-            //    {
-            //        Value = u.Id.ToString(),
-            //        Text = $"{u.Name} ({u.Abbreviation})"
-            //    });
+                model.Units = units.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = $"{u.Name} ({u.Abbreviation})"
+                });
 
-            //    return View(model);
-            //}
+                return View(model);
+            }
 
             var userId = await _userService.GetCurrentUserIdAsync(User);
             var recipeCreateDto = _mapper.Map<RecipeCreateDto>(model);
             recipeCreateDto.UserId = userId;
 
-            var recipe = _mapper.Map<Recipe>(recipeCreateDto);
-
-            await _recipeService.CreateRecipeAsync(recipe, userId);
+            await _recipeService.CreateRecipeAsync(recipeCreateDto);
 
             return RedirectToAction(nameof(MyRecipes));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var recipeDto = await _recipeService.GetRecipeByIdAsync(id);
+            if (recipeDto == null)
+            {
+                return NotFound();
+            }
+
+            var model = _mapper.Map<RecipeCreateViewModel>(recipeDto);
+
+            var categories = await _recipeService.GetAllCategoriesAsync();
+            var units = await _recipeService.GetAllUnitsAsync();
+
+            model.Categories = categories.Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            });
+
+            model.Units = units.Select(u => new SelectListItem
+            {
+                Value = u.Id.ToString(),
+                Text = $"{u.Name} ({u.Abbreviation})"
+            });
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, RecipeCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var categories = await _recipeService.GetAllCategoriesAsync();
+                var units = await _recipeService.GetAllUnitsAsync();
+
+                model.Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                });
+
+                model.Units = units.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = $"{u.Name} ({u.Abbreviation})"
+                });
+
+                return View(model);
+            }
+
+            var userId = await _userService.GetCurrentUserIdAsync(User);
+
+            var recipeUpdateDto = _mapper.Map<RecipeCreateDto>(model);
+            recipeUpdateDto.UserId = userId; 
+
+            await _recipeService.UpdateRecipeAsync(id, recipeUpdateDto, userId);
+
+            return RedirectToAction(nameof(Details), new { id = id });
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -217,8 +264,8 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var recipe = await _recipeService.GetRecipeByIdAsync(id);
-            await _recipeService.DeleteRecipeAsync(recipe);
+            await _recipeService.DeleteRecipeAsync(id);
+
             return RedirectToAction(nameof(MyRecipes));
         }
 

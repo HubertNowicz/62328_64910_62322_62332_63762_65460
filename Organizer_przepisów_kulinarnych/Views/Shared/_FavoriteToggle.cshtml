@@ -1,7 +1,7 @@
 ﻿@model RecipeViewModel
 
 <form asp-action="Toggle" method="post">
-    <input type="hidden" name="recipeId" value="@Model.RecipeId" />
+    <input type="hidden" name="recipeId" value="@Model.Id" />
     <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
     <button type="submit" class="btn btn-outline-primary">
         @(Model.IsFavorite ? "💖" : "🤍")

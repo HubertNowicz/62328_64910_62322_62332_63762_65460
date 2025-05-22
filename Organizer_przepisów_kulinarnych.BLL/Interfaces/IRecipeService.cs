@@ -1,25 +1,21 @@
-﻿using Organizer_przepisów_kulinarnych.DAL.Entities;
-using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
+﻿using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
+using Organizer_przepisów_kulinarnych.DAL.Entities;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Interfaces
 {
     public interface IRecipeService
     {
-        Task<List<Recipe>> GetAllRecipesAsync();
-        List<Recipe> GetFilteredRecipes(
-            List<Recipe> recipes,
-            bool filterUnder30,
-            bool filterBetween30And60,
-            bool filterOver60,
-            SortOption sortOption);
-        Task<List<Recipe>> GetUserRecipesAsync(int userId);
-        Task<Recipe> GetRecipeByIdAsync(int id);
-        Task<List<Recipe>> GetRecipesByCategoryAsync(string categoryName);
-        Task<List<Category>> GetAllCategoriesAsync();
-        Task<List<Ingredient>> GetAllIngredientsAsync();
-        Task<IEnumerable<MeasurementUnit>> GetAllUnitsAsync();
-        Task CreateRecipeAsync(Recipe recipe, int userid);
-        Task DeleteRecipeAsync(Recipe recipe);
+        Task<List<RecipeDto>> GetAllRecipesAsync();
+        Task<List<RecipeDto>> GetFilteredRecipes(List<RecipeDto> recipes, RecipeFilter filter);
+        Task<List<RecipeDto>> GetUserRecipesAsync(int userId);
+        Task<RecipeDto> GetRecipeByIdAsync(int id);
+        Task<List<RecipeDto>> GetRecipesByCategoryAsync(string categoryName);
+        Task<List<CategoryDto>> GetAllCategoriesAsync();
+        Task<List<IngredientDto>> GetAllIngredientsAsync();
+        Task<IEnumerable<MeasurementUnitDto>> GetAllUnitsAsync();
+        Task CreateRecipeAsync(RecipeCreateDto recipeDto);
+        Task UpdateRecipeAsync(int recipeId, RecipeCreateDto recipeDto, int userId);
+        Task DeleteRecipeAsync(int recipeId);
         Task<List<string>> MatchingIngredients(string term);
         Task<List<MeasurementUnit>> GetUnitsForIngredientAsync(string ingredientName);
     }

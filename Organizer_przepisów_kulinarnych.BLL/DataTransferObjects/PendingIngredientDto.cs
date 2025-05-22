@@ -2,13 +2,11 @@
 {
     public class PendingIngredientDto
     {
-        public int PendingIngredientId { get; set; }
-        public string PendingIngredientName { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
         public DateTime SuggestedAt { get; set; }
-        public string SuggestedByUserFirstName { get; set; }
-        public string SuggestedByUserSurname { get; set; }
-        public int MeasurementUnitId { get; set; }
-        public string MeasurementUnitName { get; set; }
-        public string MeasurementUnitAbbreviation { get; set; }
+
+        public UserDto SuggestedByUser { get; set; }
+        public MeasurementUnitDto MeasurementUnit { get; set; }
     }
 }

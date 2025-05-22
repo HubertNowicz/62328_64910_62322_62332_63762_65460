@@ -6,13 +6,17 @@
         <div class="card-body">
             <h5 class="card-title">@Model.RecipeName</h5>
             <p class="card-text">Czas przygotowania: @Model.Preptime min</p>
-            <a href="@Url.Action("Details", "Recipe", new { id = Model.RecipeId })" class="btn btn-primary">Zobacz przepis</a>
+            <a href="@Url.Action("Details", "Recipe", new { id = Model.Id })" class="btn btn-primary">Zobacz przepis</a>
 
             @await Html.PartialAsync("_FavoriteToggle", Model)
 
             @if (Model.IsUserRecipe)
             {
-                <form asp-action="Delete" asp-route-id="@Model.RecipeId" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć ten przepis?');" style="display:inline;">
+                <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning mt-2">
+                    Edytuj przepis
+                </a>
+
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć ten przepis?');" style="display:inline;">
                     <button type="submit" class="btn btn-danger btn-sm mt-2">Usuń</button>
                 </form>
             }
