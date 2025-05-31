@@ -1,0 +1,220 @@
+﻿@model RecipeCreateViewModel
+@{
+    ViewData["Title"] = "Dodaj Przepis";
+    var unitsJson = System.Text.Json.JsonSerializer.Serialize(Model.Units);
+}
+
+@section Styles {
+    <style>
+        .card {
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-radius: 10px;
+            padding: 30px;
+            background-color: #fff;
+        }
+
+        h2 {
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+        }
+
+        .btn-primary, .btn-secondary {
+            min-width: 140px;
+        }
+
+        .btn-danger {
+            margin-left: 10px;
+        }
+
+        .ingredient-item,
+        .instruction-step {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+    </style>
+}
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet" />
+
+<div class="container mt-5">
+    <div class="card">
+        <h2>Dodaj nowy przepis</h2>
+
+        <form asp-action="Create" method="post">
+            <div class="form-group mb-3">
+                <label asp-for="RecipeName"></label>
+                <input asp-for="RecipeName" class="form-control" />
+                <span asp-validation-for="RecipeName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description"></label>
+                <textarea asp-for="Description" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label>Składniki</label>
+                <div id="ingredient-list" class="mb-3"></div>
+                <button type="button" class="btn btn-primary" id="add-ingredient">Dodaj składnik</button>
+                <span asp-validation-for="Ingredients" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label>Kroki instrukcji</label>
+                <div id="instruction-list" class="mb-3"></div>
+                <button type="button" class="btn btn-secondary" id="add-instruction">Dodaj krok</button>
+                <span asp-validation-for="InstructionSteps" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Preptime">Czas przygotowania (min)</label>
+                <input asp-for="Preptime" class="form-control" />
+                <span asp-validation-for="Preptime" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-4">
+                <label asp-for="CategoryId">Kategoria</label>
+                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-control"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success">Stwórz przepis</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+@section Scripts {
+    @* Tu zostaje cały Twój dotychczasowy skrypt JS bez zmian *@
+    <script>
+        const unitsOptions = @Html.Raw(unitsJson);
+        const unitsOptionsHtml = unitsOptions.map(u => `<option value="${u.Value}">${u.Text}</option>`).join('');
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const addIngredientButton = document.getElementById("add-ingredient");
+            const ingredientList = document.getElementById("ingredient-list");
+            const addInstructionButton = document.getElementById("add-instruction");
+            const instructionList = document.getElementById("instruction-list");
+            const form = document.querySelector("form");
+
+            addIngredientButton.addEventListener("click", function () {
+                const index = ingredientList.children.length;
+                const ingredientItem = document.createElement("div");
+                ingredientItem.classList.add("ingredient-item", "form-row", "mb-3", "d-flex", "gap-2", "align-items-center");
+
+                ingredientItem.innerHTML = `
+                    <div class="col">
+                        <select name="Ingredients[${index}].Name" class="form-control ingredient-name-select" required></select>
+                    </div>
+                    <div class="col">
+                        <input name="Ingredients[${index}].Amount" class="form-control" type="number" step="1" placeholder="Ilość" required />
+                    </div>
+                    <div class="col">
+                        <select name="Ingredients[${index}].UnitId" class="form-control unit-select" required>
+                            <option value="">--Jednostka--</option>
+                            ${unitsOptionsHtml}
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-danger remove-ingredient">Usuń</button>
+                `;
+
+                ingredientList.appendChild(ingredientItem);
+                initializeTomSelect(ingredientItem.querySelector('.ingredient-name-select'));
+            });
+
+            ingredientList.addEventListener("click", function (event) {
+                if (event.target.classList.contains("remove-ingredient")) {
+                    event.target.closest(".ingredient-item").remove();
+                }
+            });
+
+            function initializeTomSelect(selectElement) {
+                new TomSelect(selectElement, {
+                    create: true,
+                    createOnBlur: true,
+                    persist: true,
+                    maxOptions: 10,
+                    valueField: 'value',
+                    labelField: 'value',
+                    searchField: 'value',
+                    load: function (query, callback) {
+                        if (!query.length) return callback();
+                        fetch(`/Recipe/SearchIngredients?term=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => callback(data.suggestions.map(name => ({ value: name }))))
+                            .catch(() => callback());
+                    },
+                    onItemAdd: function (value) {
+                        const unitSelect = selectElement.closest('.ingredient-item').querySelector('.unit-select');
+                        fetch(`/Recipe/GetUnitsForIngredient?name=${encodeURIComponent(value)}`)
+                            .then(response => response.json())
+                            .then(units => {
+                                unitSelect.innerHTML = '<option value="">--Jednostka--</option>';
+                                units.forEach(u => {
+                                    unitSelect.innerHTML += `<option value="${u.id}">${u.name} (${u.abbreviation})</option>`;
+                                });
+                            });
+                    }
+                });
+            }
+
+            // INSTRUCTION
+            addInstructionButton.addEventListener("click", function () {
+                const index = instructionList.children.length;
+                const stepDiv = document.createElement("div");
+                stepDiv.classList.add("instruction-step", "form-group", "mb-3");
+                stepDiv.innerHTML = `
+                    <label>Krok ${index + 1}</label>
+                    <textarea name="InstructionSteps[${index}].Description" class="form-control" required></textarea>
+                    <input type="hidden" name="InstructionSteps[${index}].StepNumber" value="${index + 1}" />
+                    <button type="button" class="btn btn-danger btn-sm mt-1 remove-instruction">Usuń</button>
+                `;
+                instructionList.appendChild(stepDiv);
+            });
+
+            instructionList.addEventListener("click", function (event) {
+                if (event.target.classList.contains("remove-instruction")) {
+                    event.target.closest(".instruction-step").remove();
+                    updateInstructionStepNumbers();
+                }
+            });
+
+            function updateInstructionStepNumbers() {
+                const steps = instructionList.querySelectorAll(".instruction-step");
+                steps.forEach((stepDiv, index) => {
+                    stepDiv.querySelector("label").innerText = `Krok ${index + 1}`;
+                    stepDiv.querySelector("textarea").name = `InstructionSteps[${index}].Description`;
+                    stepDiv.querySelector("input[type='hidden']").name = `InstructionSteps[${index}].StepNumber`;
+                    stepDiv.querySelector("input[type='hidden']").value = index + 1;
+                });
+            }
+
+            form.addEventListener("submit", function (event) {
+                const ingredients = ingredientList.querySelectorAll(".ingredient-item");
+                let valid = true;
+
+                ingredients.forEach(function (ingredientItem) {
+                    const name = ingredientItem.querySelector("select[name*='.Name']").value;
+                    const amount = ingredientItem.querySelector("input[name*='.Amount']").value;
+                    const unit = ingredientItem.querySelector("select[name*='.UnitId']").value;
+                    if (!name || !amount || !unit) valid = false;
+                });
+
+                if (!valid) {
+                    alert("Uzupełnij wszystkie składniki.");
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
