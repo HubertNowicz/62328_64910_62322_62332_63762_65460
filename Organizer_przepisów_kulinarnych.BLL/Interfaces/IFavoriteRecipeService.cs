@@ -2,7 +2,7 @@
 
 namespace Organizer_przepisów_kulinarnych.BLL.Interfaces
 {
-    public interface  IFavortieRecipeService
+    public interface  IFavoriteRecipeService
     {
         Task ToggleFavoriteAsync(int userId, int recipeId);
         Task<List<RecipeDto>> GetFavoriteRecipesForUserAsync(int userId);

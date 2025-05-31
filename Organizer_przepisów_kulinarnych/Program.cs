@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Organizer_przepis體_kulinarnych.DAL.DbContexts;
-using Organizer_przepis體_kulinarnych.BLL.Interfaces;
-using Organizer_przepis體_kulinarnych.BLL.Services;
-using Organizer_przepis體_kulinarnych.Helpers;
-using Organizer_przepis體_kulinarnych.DAL.Repository;
-using Organizer_przepis體_kulinarnych.DAL.Interfaces;
+using Organizer_przepis贸w_kulinarnych.DAL.DbContexts;
+using Organizer_przepis贸w_kulinarnych.BLL.Interfaces;
+using Organizer_przepis贸w_kulinarnych.BLL.Services;
+using Organizer_przepis贸w_kulinarnych.Helpers;
+using Organizer_przepis贸w_kulinarnych.DAL.Repository;
+using Organizer_przepis贸w_kulinarnych.DAL.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +20,7 @@ builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
-builder.Services.AddScoped<IFavortieRecipeService, FavoriteRecipeService>();
+builder.Services.AddScoped<IFavoriteRecipeService, FavoriteRecipeService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddSession();
