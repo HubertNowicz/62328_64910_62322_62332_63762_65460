@@ -92,14 +92,15 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> MojePrzepisy([FromQuery] RecipeFilter filter)
+        public async Task<IActionResult> MyRecipes([FromQuery] RecipeFilter filter)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
             var recipes = await _recipeService.GetUserRecipesAsync(userId);
             var filteredRecipes = await _recipeService.GetFilteredRecipes(recipes, filter);
             var favoriteRecipeIds = await _favoriteRecipeService.GetFavoriteRecipesIdsForUserAsync(userId);
 
-            var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(_mapper.Map<List<RecipeDto>>(filteredRecipes));
+            var recipeDtos = _mapper.Map<List<RecipeDto>>(filteredRecipes);
+            var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipeDtos);
             foreach (var vm in recipeViewModels)
             {
                 vm.IsFavorite = favoriteRecipeIds.Contains(vm.Id);
@@ -115,8 +116,9 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             });
         }
 
-        [HttpGet, AllowAnonymous]
-        public async Task<IActionResult> Szczegoly(int id)
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int id)
         {
             var recipe = await _recipeService.GetRecipeByIdAsync(id);
             var recipeViewModel = _mapper.Map<RecipeViewModel>(recipe);
@@ -125,6 +127,7 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             {
                 var userId = await _userService.GetCurrentUserIdAsync(User);
                 var favoriteRecipesIds = await _favoriteRecipeService.GetFavoriteRecipesIdsForUserAsync(userId);
+
                 recipeViewModel.IsFavorite = favoriteRecipesIds.Contains(recipe.Id);
                 recipeViewModel.IsUserRecipe = recipe.User.Id == userId;
             }
@@ -133,96 +136,157 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Dodaj()
+        public async Task<IActionResult> Create()
         {
             var categories = await _recipeService.GetAllCategoriesAsync();
             var units = await _recipeService.GetAllUnitsAsync();
 
-            return View(new RecipeCreateViewModel
+            var viewModel = new RecipeCreateViewModel
             {
-                Categories = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }),
-                Units = units.Select(u => new SelectListItem { Value = u.Id.ToString(), Text = $"{u.Name} ({u.Abbreviation})" })
-            });
+                Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                }),
+                Units = units.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = $"{u.Name} ({u.Abbreviation})"
+                })
+            };
+
+            return View(viewModel);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Dodaj(RecipeCreateViewModel model)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(RecipeCreateViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 var categories = await _recipeService.GetAllCategoriesAsync();
                 var units = await _recipeService.GetAllUnitsAsync();
-                model.Categories = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
-                model.Units = units.Select(u => new SelectListItem { Value = u.Id.ToString(), Text = $"{u.Name} ({u.Abbreviation})" });
+
+                model.Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                });
+
+                model.Units = units.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = $"{u.Name} ({u.Abbreviation})"
+                });
+
                 return View(model);
             }
 
             var userId = await _userService.GetCurrentUserIdAsync(User);
             var recipeCreateDto = _mapper.Map<RecipeCreateDto>(model);
             recipeCreateDto.UserId = userId;
+
             await _recipeService.CreateRecipeAsync(recipeCreateDto);
-            return RedirectToAction(nameof(MojePrzepisy));
+
+            return RedirectToAction(nameof(MyRecipes));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edytuj(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var recipeDto = await _recipeService.GetRecipeByIdAsync(id);
-            if (recipeDto == null) return NotFound();
+            if (recipeDto == null)
+            {
+                return NotFound();
+            }
 
             var model = _mapper.Map<RecipeCreateViewModel>(recipeDto);
+
             var categories = await _recipeService.GetAllCategoriesAsync();
             var units = await _recipeService.GetAllUnitsAsync();
 
-            model.Categories = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
-            model.Units = units.Select(u => new SelectListItem { Value = u.Id.ToString(), Text = $"{u.Name} ({u.Abbreviation})" });
+            model.Categories = categories.Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            });
+
+            model.Units = units.Select(u => new SelectListItem
+            {
+                Value = u.Id.ToString(),
+                Text = $"{u.Name} ({u.Abbreviation})"
+            });
+
             return View(model);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edytuj(int id, RecipeCreateViewModel model)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, RecipeCreateViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 var categories = await _recipeService.GetAllCategoriesAsync();
                 var units = await _recipeService.GetAllUnitsAsync();
-                model.Categories = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
-                model.Units = units.Select(u => new SelectListItem { Value = u.Id.ToString(), Text = $"{u.Name} ({u.Abbreviation})" });
+
+                model.Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                });
+
+                model.Units = units.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = $"{u.Name} ({u.Abbreviation})"
+                });
+
                 return View(model);
             }
 
             var userId = await _userService.GetCurrentUserIdAsync(User);
+
             var recipeUpdateDto = _mapper.Map<RecipeCreateDto>(model);
             recipeUpdateDto.UserId = userId;
+
             await _recipeService.UpdateRecipeAsync(id, recipeUpdateDto, userId);
 
-            return RedirectToAction(nameof(Szczegoly), new { id });
+            return RedirectToAction(nameof(Details), new { id = id });
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> PrzelaczUlubione(int recipeId, string returnUrl)
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Toggle(int recipeId, string returnUrl)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
             await _favoriteRecipeService.ToggleFavoriteAsync(userId, recipeId);
+
             return Redirect(returnUrl);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Usun(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
             await _recipeService.DeleteRecipeAsync(id);
-            return RedirectToAction(nameof(MojePrzepisy));
+
+            return RedirectToAction(nameof(MyRecipes));
         }
 
         [HttpGet]
-        public async Task<IActionResult> SzukajSkladnikow(string term)
+        public async Task<IActionResult> SearchIngredients(string term)
         {
             var matchingIngredients = await _recipeService.MatchingIngredients(term);
-            return Json(new { ingredientExists = matchingIngredients.Any(), suggestions = matchingIngredients });
+            return Json(new
+            {
+                ingredientExists = matchingIngredients.Any(),
+                suggestions = matchingIngredients
+            });
         }
 
         [HttpGet]
-        public async Task<IActionResult> JednostkiDlaSkladnika(string name)
+        public async Task<IActionResult> GetUnitsForIngredient(string name)
         {
             var units = await _recipeService.GetUnitsForIngredientAsync(name);
             return Json(units.Select(u => new { u.Id, u.Name, u.Abbreviation }));
