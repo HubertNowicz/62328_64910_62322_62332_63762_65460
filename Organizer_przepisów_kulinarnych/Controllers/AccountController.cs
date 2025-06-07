@@ -31,16 +31,17 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var principal = _userService.AuthenticateUser(model.Username, model.Password);
-        if (principal == null)
+        var result = _userService.AuthenticateUser(model.Username, model.Password);
+
+        if (!result.Success)
         {
-            ModelState.AddModelError("", "Invalid credentials");
+            ModelState.AddModelError("", result.Error);
             return View(model);
         }
 
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, result.Data);
 
-        var role = principal.FindFirst(ClaimTypes.Role)?.Value;
+        var role = result.Data.FindFirst(ClaimTypes.Role)?.Value;
         return role == UserRole.Admin.ToString()
             ? RedirectToAction("Index", "Admin")
             : RedirectToAction("Index", "Home");
@@ -70,19 +71,18 @@ public class AccountController : Controller
         var result = await _userService.RegisterUserAsync(dto);
         if (!result.Success)
         {
-            ModelState.AddModelError("", result.ErrorMessage!);
+            ModelState.AddModelError("", result.Error);
             return View(model);
         }
 
-        var principal = _userService.AuthenticateUser(model.Username, model.Password);
-        if (principal == null)
+        var loginResult = _userService.AuthenticateUser(model.Username, model.Password);
+        if (!loginResult.Success)
         {
-            ModelState.AddModelError("", "Invalid credentials");
+            ModelState.AddModelError("", loginResult.Error);
             return View(model);
         }
 
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, loginResult.Data);
         return RedirectToAction("Index", "Home");
     }
 }

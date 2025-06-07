@@ -1,12 +1,11 @@
-﻿using Organizer_przepisów_kulinarnych.DAL.DbContexts;
+﻿using AutoMapper;
+using System.Security.Claims;
 using Organizer_przepisów_kulinarnych.DAL.Entities;
 using Organizer_przepisów_kulinarnych.BLL.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Organizer_przepisów_kulinarnych.DAL.Entities.Enums;
 using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
-using AutoMapper;
+using Organizer_przepisów_kulinarnych.BLL.Common;
 using Organizer_przepisów_kulinarnych.DAL.Interfaces;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Services
@@ -22,38 +21,41 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             _mapper = mapper;
         }
 
-        public async Task<UserDto> GetUserByIdAsync(int id)
+        public async Task<Result<UserDto>> GetUserByIdAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            return user == null ? null : _mapper.Map<UserDto>(user);
+            return user == null
+                ? Result<UserDto>.Fail("User not found.")
+                : Result<UserDto>.Ok(_mapper.Map<UserDto>(user));
         }
 
-        public async Task<UserDto> GetUserByUsernameAsync(string username)
+        public async Task<Result<UserDto>> GetUserByUsernameAsync(string username)
         {
             var user = await _userRepository.GetByUsernameAsync(username);
-            return user == null ? null : _mapper.Map<UserDto>(user);
+            return user == null
+                ? Result<UserDto>.Fail("User not found.")
+                : Result<UserDto>.Ok(_mapper.Map<UserDto>(user));
         }
 
-        public async Task<bool> DeleteUserAsync(int id)
+        public async Task<Result> DeleteUserAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.UserRole == UserRole.Admin)
-            {
-                return false;
-            }
+            if (user == null)
+                return Result.Fail("User not found.");
+
+            if (user.UserRole == UserRole.Admin)
+                return Result.Fail("Cannot delete an Admin account.");
 
             await _userRepository.DeleteAsync(user);
             await _userRepository.SaveChangesAsync();
-            return true;
+            return Result.Ok();
         }
 
-        public async Task<bool> UpdateUserAsync(UserDto updatedDto)
+        public async Task<Result> UpdateUserAsync(UserDto updatedDto)
         {
             var user = await _userRepository.GetByIdAsync(updatedDto.Id);
             if (user == null)
-            {
-                return false;
-            }
+                return Result.Fail("User not found.");
 
             user.Email = updatedDto.Email;
             user.FirstName = updatedDto.FirstName;
@@ -61,42 +63,35 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             user.Username = updatedDto.Username;
 
             await _userRepository.SaveChangesAsync();
-            return true;
+            return Result.Ok();
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
+        public async Task<Result<List<User>>> GetAllUsersAsync()
         {
-            return await _userRepository.GetAllAsync();
+            var users = await _userRepository.GetAllAsync();
+            return Result<List<User>>.Ok(users);
         }
 
-        public async Task<int> GetCurrentUserIdAsync(ClaimsPrincipal principal)
+        public async Task<Result<int>> GetCurrentUserIdAsync(ClaimsPrincipal principal)
         {
             var username = principal.Identity?.Name;
             if (string.IsNullOrEmpty(username))
-            {
-                throw new InvalidOperationException("User is not authenticated.");
-            }
+                return Result<int>.Fail("User is not authenticated.");
 
             var user = await _userRepository.GetByUsernameAsync(username);
             if (user == null)
-            {
-                throw new Exception("User not found.");
-            }
+                return Result<int>.Fail("User not found.");
 
-            return user.Id;
+            return Result<int>.Ok(user.Id);
         }
 
-        public async Task<RegistrationResult> RegisterUserAsync(UserRegistrationDto dto)
+        public async Task<Result> RegisterUserAsync(UserRegistrationDto dto)
         {
             if (await _userRepository.UsernameExistsAsync(dto.Username))
-            {
-                return RegistrationResult.Failed("Username is already taken.");
-            }
+                return Result.Fail("Username is already taken.");
 
             if (await _userRepository.EmailExistsAsync(dto.Email))
-            {
-                return RegistrationResult.Failed("Email is already in use.");
-            }
+                return Result.Fail("Email is already in use.");
 
             var user = _mapper.Map<User>(dto);
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -105,28 +100,26 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            return RegistrationResult.Successful(user);
+            return Result.Ok();
         }
 
-        public User? ValidateCredentials(string username, string password)
+        public Result<User> ValidateCredentials(string username, string password)
         {
             var user = _userRepository.GetByUsernameAsync(username).Result;
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            {
-                return null;
-            }
 
-            return user;
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                return Result<User>.Fail("Invalid credentials.");
+
+            return Result<User>.Ok(user);
         }
 
-        public ClaimsPrincipal? AuthenticateUser(string username, string password)
+        public Result<ClaimsPrincipal> AuthenticateUser(string username, string password)
         {
-            var user = ValidateCredentials(username, password);
-            if (user == null)
-            {
-                return null;
-            }
+            var userResult = ValidateCredentials(username, password);
+            if (!userResult.Success)
+                return Result<ClaimsPrincipal>.Fail(userResult.Error);
 
+            var user = userResult.Data;
             var claims = new List<Claim>
             {
                 new(ClaimTypes.Name, user.Username),
@@ -135,15 +128,14 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            return new ClaimsPrincipal(identity);
+            return Result<ClaimsPrincipal>.Ok(new ClaimsPrincipal(identity));
         }
 
-        // for seeder
-        public async Task CreateAsync(User user)
+        public async Task<Result> CreateAsync(User user)
         {
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
+            return Result.Ok();
         }
-
     }
 }
