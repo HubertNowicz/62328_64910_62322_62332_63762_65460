@@ -3,6 +3,6 @@
     public class RecipeInstructionStepDto
     {
         public int StepNumber { get; set; }
-        public required string Description { get; set; }
+        public string Description { get; set; }
     }
 }

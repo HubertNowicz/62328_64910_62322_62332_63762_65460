@@ -34,10 +34,9 @@ namespace Organizer_przepisów_kulinarnych.DAL.Repository
             await _context.Users.AddAsync(user);
         }
 
-        public async Task DeleteAsync(User user)
+        public async Task DeleteAsync(User user) 
         {
             _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> UsernameExistsAsync(string username)

@@ -3,11 +3,11 @@
     public class PendingIngredient
     {
         public int Id { get; set; }
-        public required string Name { get; set; }
+        public string Name { get; set; }
         public DateTime SuggestedAt { get; set; } = DateTime.UtcNow;
         public int SuggestedByUserId { get; set; }
-        public required User SuggestedByUser { get; set; }
+        public User SuggestedByUser { get; set; }
         public int MeasurementUnitId { get; set; }
-        public required MeasurementUnit MeasurementUnit { get; set; }
+        public MeasurementUnit MeasurementUnit { get; set; }
     }
 }

@@ -9,10 +9,10 @@ namespace Organizer_przepisów_kulinarnych.Models
         public int Id { get; set; }
 
         [Required]
-        public required string RecipeName { get; set; }
+        public string RecipeName { get; set; }
 
         [Required]
-        public required string Description { get; set; }
+        public string Description { get; set; }
 
         [Required]
         public List<RecipeInstructionStepViewModel> InstructionSteps { get; set; } = [];
@@ -26,14 +26,14 @@ namespace Organizer_przepisów_kulinarnych.Models
         [Required]
         public DateTime CreatedAt { get; set; }
 
-        public required UserViewModel User { get; set; }
+        public UserViewModel User { get; set; }
 
         [Required]
-        public required CategoryViewModel Category { get; set; }
+        public CategoryViewModel Category { get; set; }
 
         public bool IsFavorite { get; set;}
         public bool IsUserRecipe { get; set; }
-        public required List<SelectListItem> Units { get; set; }
+        public List<SelectListItem> Units { get; set; }
 
     }
 }

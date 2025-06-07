@@ -110,10 +110,5 @@ namespace Organizer_przepisów_kulinarnych.DAL.Repository
         {
             await _context.SaveChangesAsync();
         }
-        public async Task DeleteAsync(Ingredient ingredient)
-        {
-            _context.Ingredients.Remove(ingredient);
-            await _context.SaveChangesAsync();
-        }
     }
 }

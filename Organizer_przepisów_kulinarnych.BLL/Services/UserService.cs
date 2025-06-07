@@ -22,13 +22,13 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             _mapper = mapper;
         }
 
-        public async Task<UserDto?> GetUserByIdAsync(int id)
+        public async Task<UserDto> GetUserByIdAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             return user == null ? null : _mapper.Map<UserDto>(user);
         }
 
-        public async Task<UserDto?> GetUserByUsernameAsync(string username)
+        public async Task<UserDto> GetUserByUsernameAsync(string username)
         {
             var user = await _userRepository.GetByUsernameAsync(username);
             return user == null ? null : _mapper.Map<UserDto>(user);

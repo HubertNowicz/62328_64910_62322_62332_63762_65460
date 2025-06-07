@@ -5,9 +5,9 @@
         public class IngredientViewModel
         {
             public int Id { get; set; }
-            public required string Name { get; set; }
+            public string Name { get; set; }
 
-            public required List<MeasurementUnitViewModel> Units { get; set; }
+            public List<MeasurementUnitViewModel> Units { get; set; }
         }
     }
 

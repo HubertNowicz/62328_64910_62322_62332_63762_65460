@@ -67,12 +67,11 @@ namespace Organizer_przepisów_kulinarnych.DAL.Repository
         {
             await _context.Recipes.AddAsync(recipe);
         }
-        public  async Task DeleteAsync(Recipe recipe)
+        public async Task DeleteAsync(Recipe recipe)
         {
             var relatedFavorites = _context.FavoriteRecipes.Where(fr => fr.RecipeId == recipe.Id);
             _context.FavoriteRecipes.RemoveRange(relatedFavorites);
             _context.Recipes.Remove(recipe);
-            await _context.SaveChangesAsync();
         }
 
         public async Task SaveChangesAsync()

@@ -4,8 +4,8 @@ namespace Organizer_przepisów_kulinarnych.Models
 {
     public class AdminIngredientsViewModel
     {
-        public required List<IngredientViewModel> Ingredients { get; set; }
-        public required List<MeasurementUnitViewModel> AllUnits { get; set; }
-        public required List<PendingIngredientViewModel> PendingIngredients { get; set; }
+        public List<IngredientViewModel> Ingredients { get; set; }
+        public List<MeasurementUnitViewModel> AllUnits { get; set; }
+        public List<PendingIngredientViewModel> PendingIngredients { get; set; }
     }
 }

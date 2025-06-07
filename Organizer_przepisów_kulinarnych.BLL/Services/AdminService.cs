@@ -47,14 +47,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
                 var unit = new IngredientUnit
                 {
                     IngredientId = ingredientId,
-                    UnitId = suggestion.MeasurementUnitId,
-                    Ingredient = newIngredient,
-                    Unit = new MeasurementUnit
-                    {
-                        Id = suggestion.MeasurementUnitId,
-                        Name = string.Empty,
-                        Abbreviation = string.Empty
-                    }
+                    UnitId = suggestion.MeasurementUnitId
                 };
 
                 await _ingredientRepository.AddIngredientUnitAsync(unit);
@@ -95,7 +88,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             }
         }
 
-        public async Task<(bool Success, string? ErrorMessage)> AddIngredientAsync(string ingredientName, List<int> selectedUnitIds)
+        public async Task<(bool Success, string ErrorMessage)> AddIngredientAsync(string ingredientName, List<int> selectedUnitIds)
         {
             var allIngredients = await _ingredientRepository.GetAllAsync();
             var selectedUnits = await _ingredientRepository.GetUnitsByIdsAsync(selectedUnitIds);
@@ -112,9 +105,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
                         matchingIngredient.IngredientUnits.Add(new IngredientUnit
                         {
                             IngredientId = matchingIngredient.Id,
-                            Ingredient = matchingIngredient,
-                            UnitId = unit.Id,
-                            Unit = unit
+                            UnitId = unit.Id
                         });
                     }
                 }
@@ -129,14 +120,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
                 Name = capitalizedName,
                 IngredientUnits = selectedUnits.Select(unit => new IngredientUnit
                 {
-                    UnitId = unit.Id,
-                    Unit = new MeasurementUnit
-                    {
-                        Id = unit.Id,
-                        Name = unit.Name,
-                        Abbreviation = unit.Abbreviation
-                    },
-                    Ingredient = newIngredient
+                    UnitId = unit.Id
                 }).ToList()
             };
 
