@@ -8,6 +8,6 @@ namespace Organizer_przepisów_kulinarnych.Models
         public int StepNumber { get; set; }
 
         [Required]
-        public string Description { get; set; }
+        public required string Description { get; set; }
     }
 }

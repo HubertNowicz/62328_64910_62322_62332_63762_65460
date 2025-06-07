@@ -4,6 +4,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Interfaces
 {
     public interface IIngredientRepository
     {
+
         Task<List<Ingredient>> GetAllAsync();
         Task<List<RecipeIngredient>> GetAllRecipeIngredientsAsync();
         Task<Ingredient?> GetByNameAsync(string name);
@@ -12,6 +13,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Interfaces
         Task AddPendingAsync(PendingIngredient pending);
         Task<Ingredient?> GetByIdAsync(int id);
         Task AddIngredientAsync(Ingredient ingredient);
+        Task DeleteAsync(Ingredient ingredient);
         Task AddIngredientUnitAsync(IngredientUnit unit);
         Task<List<MeasurementUnit>> GetUnitsByIdsAsync(List<int> unitIds);
         Task RemovePendingRangeAsync(IEnumerable<PendingIngredient> pendingList);
@@ -19,5 +21,7 @@ namespace Organizer_przepisów_kulinarnych.DAL.Interfaces
         Task<List<string>> GetRecipeNamesUsingIngredientAsync(int ingredientId);
         Task RemoveIngredientAsync(Ingredient ingredient);
         Task SaveChangesAsync();
+
     }
+
 }

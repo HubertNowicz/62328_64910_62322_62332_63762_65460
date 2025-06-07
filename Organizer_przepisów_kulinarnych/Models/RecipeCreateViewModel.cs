@@ -8,11 +8,11 @@ namespace Organizer_przepisów_kulinarnych.Models
         public int Id { get; set; }
         [Required(ErrorMessage = "Nazwa przepisu jest wymagana.")]
         [Display(Name = "Nazwa")]
-        public string RecipeName { get; set; }
+        public required string RecipeName { get; set; }
 
         [Required(ErrorMessage = "Opis jest wymagany.")]
         [Display(Name = "Opis")]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         [Required(ErrorMessage = "At least one ingredient is required.")]
         [Display(Name = "Składniki")]

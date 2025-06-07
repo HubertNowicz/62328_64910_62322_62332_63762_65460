@@ -196,7 +196,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
 
             foreach (var stepDto in recipeDto.InstructionSteps)
             {
-                recipe.InstructionSteps.Add(new RecipeInstructionStep
+                recipe.InstructionSteps.Add(new tRecipeInstructionStep
                 {
                     StepNumber = stepDto.StepNumber,
                     Description = stepDto.Description

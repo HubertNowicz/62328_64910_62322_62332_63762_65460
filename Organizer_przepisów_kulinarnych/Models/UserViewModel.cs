@@ -6,14 +6,14 @@ namespace Organizer_przepisów_kulinarnych.Models
     {
         public int Id { get; set; }
         [Required]
-        public string Username { get; set; }
+        public required string Username { get; set; }
         [Required]
-        public string FirstName { get; set; }
+        public required string FirstName { get; set; }
         [Required]
-        public string Surname { get; set; }
+        public required string Surname { get; set; }
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; set; }
     }
 
 }

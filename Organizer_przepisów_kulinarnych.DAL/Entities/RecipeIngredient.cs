@@ -3,7 +3,7 @@
     public class RecipeIngredient
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public double Amount { get; set; }
         public int UnitId { get; set; }
         public MeasurementUnit Unit { get; set; }
