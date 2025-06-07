@@ -1,25 +1,35 @@
 ﻿@model RecipeListViewModel
 @using Organizer_przepisów_kulinarnych.DAL.Entities.Enums
-<h2>Ulubione Przepisy</h2>
-<div class="row">
-    <div class="col-md-3">
-        @await Html.PartialAsync("_FilterFormPartial", Model)
-    </div>
-    <div class="col-md-9">
-        <div class="row">
-            @if (Model.Recipes.Any())
+
+<div class="container mt-5">
+    <h2 class="mb-4">Ulubione Przepisy</h2>
+
+    <div class="main-wrapper">
+        <!-- Lewa kolumna: Filtry -->
+        <div class="filter-sidebar shadow-sm">
+            @await Html.PartialAsync("_FilterFormPartial", Model)
+        </div>
+
+        <!-- Prawa kolumna: Przepisy -->
+        <div class="recipe-grid">
+            @if (Model.Recipes != null && Model.Recipes.Any())
             {
-                @foreach (var recipe in Model.Recipes)
+                foreach (var recipe in Model.Recipes)
                 {
-                    @await Html.PartialAsync("_RecipeCard", recipe)
+                    <div class="recipe-card">
+                        @await Html.PartialAsync("_RecipeCard", recipe)
+                    </div>
                 }
             }
             else
             {
-                <div class="col-12">
-                    <p>Brak ulubionych przepisów.</p>
-                </div>
+                <p class="no-recipes">Brak ulubionych przepisów.</p>
             }
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/recipe.css" asp-append-version="true" />
+}
+

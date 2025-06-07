@@ -10,14 +10,14 @@ namespace Organizer_przepisów_kulinarnych.Controllers
     [Authorize]
     public class FavoriteRecipeController : Controller
     {
-        private readonly IFavortieRecipeService _favoriteRecipeService;
+        private readonly IFavoriteRecipeService _favoriteRecipeService;
         private readonly IUserService _userService;
         private readonly IRecipeService _recipeService;
         private readonly IMapper _mapper;
 
-        public FavoriteRecipeController(IFavortieRecipeService favortieRecipe, IUserService userService, IRecipeService recipeService, IMapper mapper)
+        public FavoriteRecipeController(IFavoriteRecipeService favoriteRecipe, IUserService userService, IRecipeService recipeService, IMapper mapper)
         {
-            _favoriteRecipeService = favortieRecipe;
+            _favoriteRecipeService = favoriteRecipe;
             _userService = userService;
             _recipeService = recipeService;
             _mapper = mapper;
@@ -57,5 +57,4 @@ namespace Organizer_przepisów_kulinarnych.Controllers
             return Redirect(returnUrl);
         }
     }
-
 }

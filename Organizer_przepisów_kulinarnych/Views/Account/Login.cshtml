@@ -4,30 +4,36 @@
     ViewData["Title"] = "Login";
 }
 
-<h2>Zaloguj się</h2>
+<div class="login-wrapper">
+    <div class="login-box">
+        <h2>Zaloguj się</h2>
 
-<form asp-action="Login" method="post">
-    <div class="form-group">
-        <label asp-for="Username">Nazwa użytkownika</label>
-        <input asp-for="Username" class="form-control" />
-        <span asp-validation-for="Username" class="text-danger"></span>
-    </div>
+        <form asp-action="Login" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
 
-    <div class="form-group">
-        <label asp-for="Password">Hasło</label>
-        <input asp-for="Password" class="form-control" type="password" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <hr />
-    <div class="mb-3">
-        <input type="submit" value="Zaloguj się" class="btn btn-primary" />
-    </div>
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label">Nazwa użytkownika</label>
+                <input asp-for="Username" class="form-control" autocomplete="username" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-</form>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label">Hasło</label>
+                <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-login">Zaloguj się</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+}
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
 }

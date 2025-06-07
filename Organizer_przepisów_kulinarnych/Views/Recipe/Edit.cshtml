@@ -7,85 +7,84 @@
 
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet" />
 
-<h2>Edytuj Przepis</h2>
+<div class="d-flex justify-content-center mt-5">
+    <div class="card shadow-sm p-4" style="max-width: 900px; width: 100%;">
+        <h2 class="mb-4 text-center">Edytuj Przepis</h2>
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="Id" />
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
 
-    <div class="form-group mb-3">
-        <label asp-for="RecipeName"></label>
-        <input asp-for="RecipeName" class="form-control rounded shadow-sm" />
-        <span asp-validation-for="RecipeName" class="text-danger"></span>
-    </div>
+            <div class="mb-3">
+                <label asp-for="RecipeName" class="form-label">Nazwa</label>
+                <input asp-for="RecipeName" class="form-control" />
+                <span asp-validation-for="RecipeName" class="text-danger"></span>
+            </div>
 
-    <div class="form-group mb-3">
-        <label asp-for="Description"></label>
-        <textarea asp-for="Description" class="form-control rounded shadow-sm"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Opis</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
 
-    <div class="form-group mb-3">
-        <label>Ingredients</label>
-        <div id="ingredient-list" class="mb-2">
-            @for (int i = 0; i < Model.Ingredients.Count(); i++)
-            {
-                <div class="ingredient-item form-row mb-2 d-flex gap-2 align-items-center">
-                    <div class="col">
-                        <select name="Ingredients[@i].Name" class="form-control rounded shadow-sm ingredient-name-select" required>
-                            <option selected="selected" value="@Model.Ingredients[i].Name">@Model.Ingredients[i].Name</option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        <input name="Ingredients[@i].Amount" value="@Model.Ingredients[i].Amount" class="form-control rounded shadow-sm" type="number" step="1" required />
-                    </div>
-                    <div class="col">
-                        <select name="Ingredients[@i].UnitId" class="form-control rounded shadow-sm unit-select" required>
-                            <option value="">--Select Unit--</option>
-                            @foreach (var unit in Model.Units)
-                            {
-                                <option value="@unit.Value" selected="@(unit.Value == Model.Ingredients[i].UnitId.ToString())">@unit.Text</option>
-                            }
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-danger remove-ingredient">Usuń składnik</button>
+            <div class="mb-3">
+                <label class="form-label">Składniki</label>
+                <div id="ingredient-list">
+                    @for (int i = 0; i < Model.Ingredients.Count(); i++)
+                    {
+                        <div class="ingredient-item d-flex gap-2 align-items-center mb-2">
+                            <select name="Ingredients[@i].Name" class="form-control ingredient-name-select" required>
+                                <option selected="selected" value="@Model.Ingredients[i].Name">@Model.Ingredients[i].Name</option>
+                            </select>
+
+                            <input name="Ingredients[@i].Amount" value="@Model.Ingredients[i].Amount" class="form-control" type="number" required />
+
+                            <select name="Ingredients[@i].UnitId" class="form-control unit-select" required>
+                                <option value="">-- jednostka --</option>
+                                @foreach (var unit in Model.Units)
+                                {
+                                    <option value="@unit.Value" selected="@(unit.Value == Model.Ingredients[i].UnitId.ToString())">@unit.Text</option>
+                                }
+                            </select>
+
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-ingredient">Usuń składnik</button>
+                        </div>
+                    }
                 </div>
-            }
-        </div>
-        <button type="button" class="btn btn-primary" id="add-ingredient">Dodaj składnik</button>
-        <span asp-validation-for="Ingredients" class="text-danger"></span>
-    </div>
+                <button type="button" class="btn btn-primary btn-sm mt-2" id="add-ingredient">Dodaj składnik</button>
+            </div>
 
-    <div class="form-group mb-3">
-        <label>Instruction Steps</label>
-        <div id="instruction-list" class="mb-2">
-            @for (int i = 0; i < Model.InstructionSteps.Count(); i++)
-            {
-                <div class="instruction-step form-group mb-2">
-                    <label>Step @(i + 1)</label>
-                    <textarea name="InstructionSteps[@i].Description" class="form-control rounded shadow-sm" required>@Model.InstructionSteps[i].Description</textarea>
-                    <input type="hidden" name="InstructionSteps[@i].StepNumber" value="@(i + 1)" />
-                    <button type="button" class="btn btn-danger btn-sm mt-1 remove-instruction">Remove</button>
+            <div class="mb-3">
+                <label class="form-label">Instrukcja</label>
+                <div id="instruction-list">
+                    @for (int i = 0; i < Model.InstructionSteps.Count(); i++)
+                    {
+                        <div class="instruction-step mb-3">
+                            <label>Krok @(i + 1)</label>
+                            <textarea name="InstructionSteps[@i].Description" class="form-control mb-1" rows="2" required>@Model.InstructionSteps[i].Description</textarea>
+                            <input type="hidden" name="InstructionSteps[@i].StepNumber" value="@(i + 1)" />
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-instruction">Usuń krok</button>
+                        </div>
+                    }
                 </div>
-            }
-        </div>
-        <button type="button" class="btn btn-secondary" id="add-instruction">Dodaj krok</button>
-        <span asp-validation-for="InstructionSteps" class="text-danger"></span>
-    </div>
+                <button type="button" class="btn btn-secondary btn-sm mt-2" id="add-instruction">Dodaj krok</button>
+            </div>
 
-    <div class="form-group mb-3">
-        <label asp-for="Preptime"></label>
-        <input asp-for="Preptime" class="form-control rounded shadow-sm" type="number" />
-        <span asp-validation-for="Preptime" class="text-danger"></span>
-    </div>
+            <div class="mb-3">
+                <label asp-for="Preptime" class="form-label">Czas przygotowania (min)</label>
+                <input asp-for="Preptime" class="form-control" type="number" />
+                <span asp-validation-for="Preptime" class="text-danger"></span>
+            </div>
 
-    <div class="form-group mb-4">
-        <label asp-for="CategoryId"></label>
-        <select asp-for="CategoryId" asp-items="Model.Categories" class="form-control rounded shadow-sm"></select>
-        <span asp-validation-for="CategoryId" class="text-danger"></span>
-    </div>
+            <div class="mb-4">
+                <label asp-for="CategoryId" class="form-label">Kategoria</label>
+                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-control"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
 
-    <button type="submit" class="btn btn-success">Zapisz zmiany</button>
-</form>
+            <button type="submit" class="btn btn-success w-100">Zapisz zmiany</button>
+        </form>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
@@ -99,34 +98,25 @@
             const ingredientList = document.getElementById("ingredient-list");
             const addInstructionButton = document.getElementById("add-instruction");
             const instructionList = document.getElementById("instruction-list");
-            const form = document.querySelector("form");
 
-            // Initialize TomSelect on existing selects
             document.querySelectorAll('.ingredient-name-select').forEach(initializeTomSelect);
 
-            addIngredientButton.addEventListener("click", function () {
+            addIngredientButton.addEventListener("click", () => {
                 const index = ingredientList.children.length;
-                const ingredientItem = document.createElement("div");
-                ingredientItem.classList.add("ingredient-item", "form-row", "mb-2", "d-flex", "gap-2", "align-items-center");
+                const div = document.createElement("div");
+                div.classList = "ingredient-item d-flex gap-2 align-items-center mb-2";
 
-                ingredientItem.innerHTML = `
-                                    <div class="col">
-                                        <select name="Ingredients[${index}].Name" class="form-control rounded shadow-sm ingredient-name-select" required></select>
-                                    </div>
-                                    <div class="col">
-                                        <input name="Ingredients[${index}].Amount" class="form-control rounded shadow-sm" type="number" step="1" required />
-                                    </div>
-                                    <div class="col">
-                                        <select name="Ingredients[${index}].UnitId" class="form-control rounded shadow-sm unit-select" required>
-                                            <option value="">--Select Unit--</option>
-                                            ${unitsOptionsHtml}
-                                        </select>
-                                    </div>
-                                    <button type="button" class="btn btn-danger remove-ingredient">Usuń składnik</button>
-                                `;
+                div.innerHTML = `
+                            <select name="Ingredients[${index}].Name" class="form-control ingredient-name-select" required></select>
+                            <input name="Ingredients[${index}].Amount" class="form-control" type="number" required />
+                            <select name="Ingredients[${index}].UnitId" class="form-control unit-select" required>
+                                <option value="">-- jednostka --</option>${unitsOptionsHtml}
+                            </select>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-ingredient">Usuń składnik</button>
+                        `;
 
-                ingredientList.appendChild(ingredientItem);
-                initializeTomSelect(ingredientItem.querySelector('.ingredient-name-select'));
+                ingredientList.appendChild(div);
+                initializeTomSelect(div.querySelector(".ingredient-name-select"));
             });
 
             ingredientList.addEventListener("click", function (event) {
@@ -138,20 +128,16 @@
             function initializeTomSelect(selectElement) {
                 new TomSelect(selectElement, {
                     create: true,
-                    createOnBlur: true,
                     persist: true,
                     maxOptions: 10,
-                    valueField: 'value',
-                    labelField: 'value',
-                    searchField: 'value',
-                    load: function (query, callback) {
+                    valueField: "value",
+                    labelField: "value",
+                    searchField: "value",
+                    load: (query, callback) => {
                         if (!query.length) return callback();
-
                         fetch(`/Recipe/SearchIngredients?term=${encodeURIComponent(query)}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                callback(data.suggestions.map(name => ({ value: name })));
-                            })
+                            .then(res => res.json())
+                            .then(data => callback(data.suggestions.map(v => ({ value: v }))))
                             .catch(() => callback());
                     },
                     onItemAdd: function (value) {
@@ -161,36 +147,29 @@
                         fetch(`/Recipe/GetUnitsForIngredient?name=${encodeURIComponent(value)}`)
                             .then(response => response.json())
                             .then(units => {
-                                unitSelect.innerHTML = '<option value="">--Select Unit--</option>';
+                                unitSelect.innerHTML = '<option value="">-- jednostka --</option>';
                                 units.forEach(u => {
                                     const option = document.createElement('option');
                                     option.value = u.id;
                                     option.textContent = `${u.name} (${u.abbreviation})`;
                                     unitSelect.appendChild(option);
                                 });
-                            })
-                            .catch(() => {
-                                unitSelect.innerHTML = '<option value="">--Select Unit--</option>' + unitsOptionsHtml;
                             });
                     }
                 });
             }
 
-            // INSTRUCTIONS
-            addInstructionButton.addEventListener("click", function () {
+            addInstructionButton.addEventListener("click", () => {
                 const index = instructionList.children.length;
-
-                const stepDiv = document.createElement("div");
-                stepDiv.classList.add("instruction-step", "form-group", "mb-2");
-
-                stepDiv.innerHTML = `
-                                    <label>Step ${index + 1}</label>
-                                    <textarea name="InstructionSteps[${index}].Description" class="form-control rounded shadow-sm" required></textarea>
-                                    <input type="hidden" name="InstructionSteps[${index}].StepNumber" value="${index + 1}" />
-                                    <button type="button" class="btn btn-danger btn-sm mt-1 remove-instruction">Remove</button>
-                                `;
-
-                instructionList.appendChild(stepDiv);
+                const div = document.createElement("div");
+                div.classList = "instruction-step mb-3";
+                div.innerHTML = `
+                            <label>Krok ${index + 1}</label>
+                            <textarea name="InstructionSteps[${index}].Description" class="form-control mb-1" rows="2" required></textarea>
+                            <input type="hidden" name="InstructionSteps[${index}].StepNumber" value="${index + 1}" />
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-instruction">Usuń krok</button>
+                        `;
+                instructionList.appendChild(div);
             });
 
             instructionList.addEventListener("click", function (event) {
@@ -201,35 +180,13 @@
             });
 
             function updateInstructionStepNumbers() {
-                const steps = instructionList.querySelectorAll(".instruction-step");
-                steps.forEach((stepDiv, index) => {
-                    stepDiv.querySelector("label").innerText = `Step ${index + 1}`;
-                    stepDiv.querySelector("textarea").name = `InstructionSteps[${index}].Description`;
-                    stepDiv.querySelector("input[type='hidden']").name = `InstructionSteps[${index}].StepNumber`;
-                    stepDiv.querySelector("input[type='hidden']").value = index + 1;
+                instructionList.querySelectorAll(".instruction-step").forEach((el, i) => {
+                    el.querySelector("label").innerText = `Krok ${i + 1}`;
+                    el.querySelector("textarea").name = `InstructionSteps[${i}].Description`;
+                    el.querySelector("input").name = `InstructionSteps[${i}].StepNumber`;
+                    el.querySelector("input").value = i + 1;
                 });
             }
-
-            // FINAL VALIDATION
-            form.addEventListener("submit", function (event) {
-                const ingredients = ingredientList.querySelectorAll(".ingredient-item");
-                let valid = true;
-
-                ingredients.forEach(function (ingredientItem) {
-                    const name = ingredientItem.querySelector("select[name*='.Name']").value;
-                    const amount = ingredientItem.querySelector("input[name*='.Amount']").value;
-                    const unit = ingredientItem.querySelector("select[name*='.UnitId']").value;
-
-                    if (!name || !amount || !unit) {
-                        valid = false;
-                    }
-                });
-
-                if (!valid) {
-                    alert("Please fill out all ingredient fields before submitting.");
-                    event.preventDefault();
-                }
-            });
         });
     </script>
 

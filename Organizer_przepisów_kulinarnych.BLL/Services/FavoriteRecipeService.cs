@@ -6,7 +6,7 @@ using Organizer_przepisów_kulinarnych.DAL.Interfaces;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Services
 {
-    public class FavoriteRecipeService : IFavortieRecipeService
+    public class FavoriteRecipeService : IFavoriteRecipeService
     {
         private readonly IFavoriteRecipeRepository _favRepo;
         private readonly IMapper _mapper;
@@ -16,6 +16,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             _favRepo = favRepo;
             _mapper = mapper;
         }
+
         public async Task ToggleFavoriteAsync(int userId, int recipeId)
         {
             var existing = await _favRepo.GetByUserAndRecipeAsync(userId, recipeId);
@@ -55,7 +56,6 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
 
             return dtos;
         }
-
     }
 }
 //.ProjectTo<RecipeDto>()?

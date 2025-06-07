@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Organizer_przepisów_kulinarnych.BLL\Organizer_przepisów_kulinarnych.BLL.csproj" />
+    <ProjectReference Include="..\Organizer_przepisów_kulinarnych.DAL\Organizer_przepisów_kulinarnych.DAL.csproj" />
   </ItemGroup>
 
 </Project>
