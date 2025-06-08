@@ -4,6 +4,7 @@ using Organizer_przepisów_kulinarnych.DAL.Entities;
 using Organizer_przepisów_kulinarnych.BLL.Helpers;
 using Organizer_przepisów_kulinarnych.BLL.DataTransferObjects;
 using Organizer_przepisów_kulinarnych.DAL.Interfaces;
+using Organizer_przepisów_kulinarnych.BLL.Common;
 
 namespace Organizer_przepisów_kulinarnych.BLL.Services
 {
@@ -17,18 +18,23 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             _ingredientRepository = ingredientRepository;
             _mapper = mapper;
         }
-        public async Task<List<PendingIngredientDto>> GetAllPendingIngredientsAsync()
+        public async Task<Result<List<PendingIngredientDto>>> GetAllPendingIngredientsAsync()
         {
             var suggestions = await _ingredientRepository.GetAllPendingAsync();
-            return _mapper.Map<List<PendingIngredientDto>>(suggestions);
+
+            var mapped = _mapper.Map<List<PendingIngredientDto>>(suggestions);
+
+            return Result<List<PendingIngredientDto>>.Ok(mapped);
         }
 
-        public async Task ApprovePendingIngredientAsync(int suggestedIngredientId)
+        public async Task<Result> ApprovePendingIngredientAsync(int suggestedIngredientId)
         {
             var allIngredients = await _ingredientRepository.GetAllAsync();
             var allPendingIngredients = await _ingredientRepository.GetAllPendingAsync();
 
-            var suggestion = allPendingIngredients.First(s => s.Id == suggestedIngredientId);
+            var suggestion = allPendingIngredients.FirstOrDefault(s => s.Id == suggestedIngredientId);
+            if (suggestion == null)
+                return Result.Fail("Suggested ingredient not found.");
 
             int ingredientId = 0;
             var exists = allIngredients.Any(i => StringHelper.FuzzyMatch(i.Name, suggestion.Name));
@@ -52,49 +58,57 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
 
                 await _ingredientRepository.AddIngredientUnitAsync(unit);
             }
+            else
+            {
+                var existing = allIngredients.First(i => StringHelper.FuzzyMatch(i.Name, suggestion.Name));
+                ingredientId = existing.Id;
+            }
 
             var matchingSuggestions = allPendingIngredients
                      .Where(s => StringHelper.FuzzyMatch(s.Name, suggestion.Name));
 
             await _ingredientRepository.RemovePendingRangeAsync(matchingSuggestions);
 
-
             var recipeIngredients = await _ingredientRepository.GetAllRecipeIngredientsAsync();
 
             var matchingRecipesIngredients = recipeIngredients
-                .Where(ri => StringHelper
-                .FuzzyMatch(ri.Name, suggestion.Name))
+                .Where(ri => StringHelper.FuzzyMatch(ri.Name, suggestion.Name))
                 .ToList();
 
             foreach (var recipeIngredient in matchingRecipesIngredients)
             {
                 recipeIngredient.IngredientId = ingredientId;
             }
+
             await _ingredientRepository.SaveChangesAsync();
+
+            return Result.Ok("Suggestion approved and merged.");
         }
 
-        public async Task RejectPendingIngredientAsync(int suggestedIngredientId)
+        public async Task<Result> RejectPendingIngredientAsync(int suggestedIngredientId)
         {
             var allPendingIngredients = await _ingredientRepository.GetAllPendingAsync();
 
             var suggestion = allPendingIngredients.FirstOrDefault(s => s.Id == suggestedIngredientId);
 
-            if (suggestion != null)
-            {
-                var matchingSuggestions = allPendingIngredients
-                    .Where(s => StringHelper.FuzzyMatch(s.Name, suggestion.Name));
+            if (suggestion == null)
+                return Result.Fail("Suggestion not found.");
 
-                await _ingredientRepository.RemovePendingRangeAsync(matchingSuggestions);
-            }
+            var matchingSuggestions = allPendingIngredients
+                .Where(s => StringHelper.FuzzyMatch(s.Name, suggestion.Name));
+
+            await _ingredientRepository.RemovePendingRangeAsync(matchingSuggestions);
+
+            return Result.Ok("Suggestions rejected.");
         }
 
-        public async Task<(bool Success, string ErrorMessage)> AddIngredientAsync(string ingredientName, List<int> selectedUnitIds)
+        public async Task<Result> AddIngredientAsync(string ingredientName, List<int> selectedUnitIds)
         {
             var allIngredients = await _ingredientRepository.GetAllAsync();
             var selectedUnits = await _ingredientRepository.GetUnitsByIdsAsync(selectedUnitIds);
 
             var matchingIngredient = allIngredients
-                    .FirstOrDefault(i => StringHelper.FuzzyMatch(i.Name, ingredientName));
+                .FirstOrDefault(i => StringHelper.FuzzyMatch(i.Name, ingredientName));
 
             if (matchingIngredient != null)
             {
@@ -111,7 +125,7 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
                 }
 
                 await _ingredientRepository.SaveChangesAsync();
-                return (true, "Ingredient already existed, units were added.");
+                return Result.Ok("Ingredient already existed, units were added.");
             }
 
             var capitalizedName = StringHelper.CapitalizeFirstLetter(ingredientName);
@@ -127,16 +141,17 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
             await _ingredientRepository.AddIngredientAsync(newIngredient);
             await _ingredientRepository.SaveChangesAsync();
 
-            return (true, null);
+            return Result.Ok("Ingredient added successfully.");
         }
 
-        public async Task<(bool Success, string Message)> DeleteIngredientAsync(int id)
+
+        public async Task<Result> DeleteIngredientAsync(int id)
         {
             var ingredient = await _ingredientRepository.GetByIdAsync(id);
 
             if (ingredient == null)
             {
-                return (false, "Ingredient not found.");
+                return Result.Fail("Ingredient not found.");
             }
 
             var isInUse = await _ingredientRepository.IsIngredientUsedInRecipesAsync(id);
@@ -146,13 +161,14 @@ namespace Organizer_przepisów_kulinarnych.BLL.Services
                 var recipeNames = await _ingredientRepository.GetRecipeNamesUsingIngredientAsync(id);
 
                 string recipeList = string.Join(", ", recipeNames);
-                return (false, $"Cannot delete this ingredient as it is used in the following recipes: {recipeList}.");
+                return Result.Fail($"Cannot delete this ingredient as it is used in the following recipes: {recipeList}.");
             }
 
             await _ingredientRepository.RemoveIngredientAsync(ingredient);
             await _ingredientRepository.SaveChangesAsync();
 
-            return (true, "Ingredient deleted successfully.");
+            return Result.Ok("Ingredient deleted successfully.");
         }
+
     }
 }

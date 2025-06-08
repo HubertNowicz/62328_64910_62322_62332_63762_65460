@@ -15,7 +15,7 @@ namespace Organizer_przepisów_kulinarnych.ViewComponents
         public async Task<IViewComponentResult> InvokeAsync()
         {
             var categories = await _recipeService.GetAllCategoriesAsync();
-            return View(categories);
+            return View(categories.Data);
         }
     }
 }

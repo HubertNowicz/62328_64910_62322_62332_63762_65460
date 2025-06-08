@@ -33,13 +33,13 @@ public class AdminController : Controller
     public async Task<IActionResult> ManageIngredients()
     {
         var ingredientDtos = await _recipeService.GetAllIngredientsAsync();
-        var ingredientViewModels = _mapper.Map<List<IngredientViewModel>>(ingredientDtos);
+        var ingredientViewModels = _mapper.Map<List<IngredientViewModel>>(ingredientDtos.Data);
 
         var pendingIngredientDtos = await _adminService.GetAllPendingIngredientsAsync();
-        var pendingIngredientViewModels = _mapper.Map<List<PendingIngredientViewModel>>(pendingIngredientDtos);
+        var pendingIngredientViewModels = _mapper.Map<List<PendingIngredientViewModel>>(pendingIngredientDtos.Data);
 
         var measurementUnitDtos = await _recipeService.GetAllUnitsAsync();
-        var measurementUnitsViewModels = _mapper.Map<List<MeasurementUnitViewModel>>(measurementUnitDtos);
+        var measurementUnitsViewModels = _mapper.Map<List<MeasurementUnitViewModel>>(measurementUnitDtos.Data);
 
         var model = new AdminIngredientsViewModel
         {
@@ -54,17 +54,35 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> ApproveSuggestion(int id)
     {
-        await _adminService.ApprovePendingIngredientAsync(id);
-
-        return Ok(new { message = "Approved successfully." });
+        var result = await _adminService.ApprovePendingIngredientAsync(id);
+        if (result.Success)
+            return Ok(new { message = "Approved successfully." });
+        else
+            return BadRequest(new { message = result.Error });
     }
+
 
     [HttpPost]
     public async Task<IActionResult> RejectSuggestion(int id)
     {
-        await _adminService.RejectPendingIngredientAsync(id);
+        var result = await _adminService.RejectPendingIngredientAsync(id);
+        if (result.Success)
+            return Ok(new { message = "Ingredient rejected." });
+        else
+            return BadRequest(new { message = result.Error });
+    }
 
-        return Ok(new { message = "Ingredient rejected." });
+    [HttpPost]
+    public async Task<IActionResult> AddIngredient(string ingredientName, List<int> unitIds)
+    {
+        var result = await _adminService.AddIngredientAsync(ingredientName, unitIds);
+
+        if (result.Success)
+        {
+            return Ok(new { message = result.Message ?? "Ingredient processed successfully." });
+        }
+
+        return BadRequest(new { message = result.Error ?? "Failed to add ingredient." });
     }
 
     [HttpPost]
@@ -76,27 +94,17 @@ public class AdminController : Controller
         {
             return Ok(new { message = result.Message });
         }
-        return BadRequest(new { message = result.Message });
+
+        return BadRequest(new { message = result.Error });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddIngredient(string ingredientName, List<int> unitIds)
-    {
-        var (success, errorMessage) = await _adminService.AddIngredientAsync(ingredientName, unitIds);
 
-        if (success)
-        {
-            return Ok(new { message = "Ingredient processed successfully." });
-        }
-
-        return BadRequest(new { message = errorMessage ?? "Failed to add ingredient." });
-    }
 
     [HttpGet]
     public async Task<IActionResult> ManageUsers()
     {
         var users = await _userService.GetAllUsersAsync();
-        var userDtos = _mapper.Map<List<UserDto>>(users);
+        var userDtos = _mapper.Map<List<UserDto>>(users.Data);
         var model = _mapper.Map<List<UserViewModel>>(userDtos);
         return View(model);
     }
@@ -105,7 +113,7 @@ public class AdminController : Controller
     public async Task<IActionResult> UserRecipes(int id)
     {
         var recipesDto = await _recipeService.GetUserRecipesAsync(id);
-        var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipesDto);
+        var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipesDto.Data);
 
         var model = new RecipeListViewModel
         {
@@ -122,7 +130,7 @@ public class AdminController : Controller
         if (userDto == null)
             return NotFound();
 
-        var model = _mapper.Map<UserViewModel>(userDto);
+        var model = _mapper.Map<UserViewModel>(userDto.Data);
         return View(model);
     }
 
@@ -137,7 +145,7 @@ public class AdminController : Controller
         var userDto = _mapper.Map<UserDto>(model);
         var result = await _userService.UpdateUserAsync(userDto);
 
-        if (!result)
+        if (!result.Success)
         {
             return NotFound();
         }
@@ -156,9 +164,9 @@ public class AdminController : Controller
             return RedirectToAction("ManageUsers");
         }
 
-        var success = await _userService.DeleteUserAsync(id);
+        var result = await _userService.DeleteUserAsync(id);
         
-        if (!success)
+        if (!result.Success)
         {
             TempData["Error"] = "Nie udało się usunąć użytkownika.";
         }
@@ -174,19 +182,22 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteRecipe(int id, int userId)
     {
-        var recipe = await _recipeService.GetRecipeByIdAsync(id);
-     
-        if (recipe == null || recipe.UserId != userId)
+        var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
+        if (!recipeResult.Success || recipeResult.Data.UserId != userId)
         {
             TempData["Error"] = "Nie znaleziono przepisu lub nie należy do użytkownika.";
             return RedirectToAction("UserRecipes", new { id = userId });
         }
 
-        await _recipeService.DeleteRecipeAsync(id);
+        var deleteResult = await _recipeService.DeleteRecipeAsync(id);
+        if (!deleteResult.Success)
+        {
+            TempData["Error"] = deleteResult.Error ?? "Wystąpił błąd podczas usuwania przepisu.";
+            return RedirectToAction("UserRecipes", new { id = userId });
+        }
 
         TempData["Info"] = "Przepis został usunięty.";
         return RedirectToAction("UserRecipes", new { id = userId });
     }
-
 }
 

@@ -27,10 +27,10 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         public async Task<IActionResult> Index([FromQuery] RecipeFilter filter)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
-            var userFavoriteRecipes = await _favoriteRecipeService.GetFavoriteRecipesForUserAsync(userId);
-            var filteredRecipes = await _recipeService.GetFilteredRecipes(userFavoriteRecipes, filter);
+            var userFavoriteRecipes = await _favoriteRecipeService.GetFavoriteRecipesForUserAsync(userId.Data);
+            var filteredRecipes = await _recipeService.GetFilteredRecipes(userFavoriteRecipes.Data, filter);
 
-            var recipeDtos = _mapper.Map<List<RecipeDto>>(filteredRecipes);
+            var recipeDtos = _mapper.Map<List<RecipeDto>>(filteredRecipes.Data);
             var recipeViewModels = _mapper.Map<List<RecipeViewModel>>(recipeDtos);
 
             foreach (var vm in recipeViewModels)
@@ -52,7 +52,12 @@ namespace Organizer_przepisów_kulinarnych.Controllers
         public async Task<IActionResult> Toggle(int recipeId, string returnUrl)
         {
             var userId = await _userService.GetCurrentUserIdAsync(User);
-            await _favoriteRecipeService.ToggleFavoriteAsync(userId, recipeId);
+            var result = await _favoriteRecipeService.ToggleFavoriteAsync(userId.Data, recipeId);
+            if (!result.Success)
+            {
+                TempData["Error"] = result.Error;
+                return RedirectToAction("Index", "Error");
+            }
 
             return Redirect(returnUrl);
         }
